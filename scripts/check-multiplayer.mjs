@@ -52,5 +52,43 @@ try {
   assert.equal(snapshot.timer.round,2);assert.deepEqual(snapshot.timer.attempts,{});
   await b.send({type:'timer-start',round:1});assert.match((await b.next()).error,/round has ended/);
   a.ws.close();a=client(clockCode,clock.cookie);assert.equal((await a.next()).data.timer.round,2);
-  console.log('PASS: number-game match, privacy, turns, chat, rematches, reconnect, capacity, voice authorization, timer scoring, hidden results, stale-round rejection, and timer reconnect.');
+  a.ws.close();b.ws.close();
+  const answer=await post('/api/rooms',{name:'Answer A',game:'answer'});assert.equal(answer.status,200);
+  const answerCode=answer.body.code,answerA=answer.body.id;
+  const answerJoin=await post(`/api/rooms/${answerCode}/join`,{name:'Answer B'});assert.equal(answerJoin.status,200);
+  const answerB=answerJoin.body.id;
+  a=client(answerCode,answer.cookie);b=client(answerCode,answerJoin.cookie);
+  snapshot=(await a.next()).data;await b.next();
+  assert.equal(snapshot.game,'answer');assert.equal(snapshot.sameAnswer.totalRounds,5);
+  assert.equal(snapshot.sameAnswer.deck,undefined);
+  const prompts=new Set();
+  for(let round=1;round<=5;round++){
+    prompts.add(snapshot.sameAnswer.prompt);
+    await a.send({type:'answer-submit',match:1,round,text:'Pizza!'});await a.next();snapshot=(await b.next()).data;
+    assert.deepEqual(snapshot.sameAnswer.answers[answerA],{submitted:true});
+    if(round===1){
+      await a.send({type:'answer-submit',match:1,round,text:'Changed answer'});assert.match((await a.next()).error,/locked/);
+      a.ws.close();a=client(answerCode,answer.cookie);const restored=(await a.next()).data;
+      assert.equal(restored.sameAnswer.answers[answerA].text,'Pizza!');
+      assert.equal(restored.players.find(p=>p.id===answerA).ready,true);
+    }
+    await b.send({type:'answer-submit',match:1,round,text:round%2?' pizza ':'Burger'});
+    snapshot=(await a.next()).data;await b.next();
+    assert.equal(snapshot.sameAnswer.revealed,true);
+    assert.equal(snapshot.sameAnswer.answers[answerB].text,round%2?'pizza':'Burger');
+    assert.equal(snapshot.sameAnswer.score,Math.ceil(round/2));
+    if(round<5){
+      await a.send({type:'answer-next',match:1,round});snapshot=(await a.next()).data;await b.next();
+      assert.equal(snapshot.sameAnswer.round,round);
+      await b.send({type:'answer-next',match:1,round});snapshot=(await a.next()).data;await b.next();
+      assert.equal(snapshot.sameAnswer.round,round+1);assert.deepEqual(snapshot.sameAnswer.answers,{});
+    }
+  }
+  assert.equal(prompts.size,5);assert.equal(snapshot.sameAnswer.finished,true);
+  assert.equal(snapshot.sameAnswer.score,3);assert.equal(snapshot.sameAnswer.history.length,5);
+  await a.send({type:'rematch',match:1,round:5});snapshot=(await a.next()).data;await b.next();assert.equal(snapshot.sameAnswer.finished,true);
+  await b.send({type:'rematch',match:1,round:5});snapshot=(await a.next()).data;await b.next();
+  assert.equal(snapshot.sameAnswer.match,2);assert.equal(snapshot.sameAnswer.score,0);
+  await a.send({type:'answer-submit',match:1,round:1,text:'Old match'});assert.match((await a.next()).error,/ended/);
+  console.log('PASS: all three games, hidden answers/results, five-round cooperative scoring, confirmations, rematches, reconnects, stale-action rejection, chat, capacity and voice authorization.');
 } finally {a?.ws.close();b?.ws.close();}

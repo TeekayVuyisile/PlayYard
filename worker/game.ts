@@ -1,3 +1,4 @@
+import { answerAction, answerView, type AnswerGame } from './same-answer';
 export type Player = { id: string; name: string; secret?: number };
 export type Guess = { player: string; value: number; result: 'higher' | 'lower' | 'correct' };
 export type TimerAttempt = { startedAt: number; elapsedMs?: number };
@@ -8,7 +9,7 @@ export type TimerRound = {
 export type State = {
   code: string; min: number; max: number; players: Player[]; turn: number;
   guesses: Guess[]; winner?: string; messages: { name: string; text: string }[];
-  game?: 'number' | 'timer'; timer?: TimerRound;
+  game?: 'number' | 'timer' | 'answer'; timer?: TimerRound; sameAnswer?: AnswerGame;
 };
 export function integer(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max;
@@ -17,8 +18,13 @@ export function act(s: State, id: string, action: Record<string, unknown>, now =
   const index = s.players.findIndex(p => p.id === id);
   if (index < 0) throw new Error('Join this room first.');
   const p = s.players[index];
-  if (typeof action.type === 'string' && action.type.startsWith('timer-') && s.game !== 'timer') throw new Error('This room is playing Guess My Number.');
-  if ((action.type === 'secret' || action.type === 'guess') && s.game === 'timer') throw new Error('This room is playing Stop the Clock.');
+  if (typeof action.type === 'string' && action.type.startsWith('timer-') && s.game !== 'timer') throw new Error('Timer actions require a Stop the Clock room, not Guess My Number or Same Answer.');
+  if ((action.type === 'secret' || action.type === 'guess') && s.game && s.game !== 'number') throw new Error(`This room is playing ${s.game === 'timer' ? 'Stop the Clock' : 'Same Answer'}.`);
+  if (typeof action.type === 'string' && action.type.startsWith('answer-') && s.game !== 'answer') throw new Error('Answer actions require a Same Answer room.');
+  if (s.game === 'answer' && (action.type === 'answer-submit' || action.type === 'answer-next' || action.type === 'rematch')) {
+    answerAction(s.sameAnswer!,s.players,id,action);
+    return;
+  }
   if (action.type === 'secret') {
     if (p.secret !== undefined || s.winner) throw new Error('Your number is already locked in.');
     if (!integer(action.value, s.min, s.max)) throw new Error('Choose a whole number within the range.');
@@ -88,5 +94,5 @@ export function view(s: State, id: string) {
       ...(playerId === id || s.timer!.finished ? { elapsedMs: attempt.elapsedMs } : {})
     }]))
   } : undefined;
-  return { ...s, timer, players: s.players.map(p => ({ id: p.id, name: p.name, ready: s.game === 'timer' ? s.timer?.attempts[p.id]?.elapsedMs !== undefined : p.secret !== undefined, ...(p.id === id ? { secret: p.secret } : {}) })) };
+  return { ...s, timer, sameAnswer:s.sameAnswer?answerView(s.sameAnswer,id):undefined, players: s.players.map(p => ({ id: p.id, name: p.name, ready: s.game === 'answer' ? Object.hasOwn(s.sameAnswer!.answers,p.id) : s.game === 'timer' ? s.timer?.attempts[p.id]?.elapsedMs !== undefined : p.secret !== undefined, ...(p.id === id ? { secret: p.secret } : {}) })) };
 }
