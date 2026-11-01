@@ -1,3 +1,5 @@
+import { createImposter } from './imposter';
+import { createChess } from './chess';
 import { DurableObject } from 'cloudflare:workers';
 import { AccessToken } from 'livekit-server-sdk';
 import { act, view, integer, type State } from './game';
@@ -54,28 +56,34 @@ export class GameRoom extends DurableObject<Env> {
     try {
       if (url.pathname==='/create' || url.pathname==='/join') {
         if (req.method!=='POST') return json({error:'POST required.'},405);
-        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown};
+        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown;mode?:unknown;rounds?:unknown};
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
-          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer') throw new Error('Choose an available game.');
+          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer' && input.game !== 'imposter' && input.game !== 'chess') throw new Error('Choose an available game.');
           if (input.game === 'timer') {
             if (!integer(input.targetMs,1000,30000)) throw new Error('Choose a target between 1 and 30 seconds.');
             if (typeof input.hidden !== 'boolean') throw new Error('Choose whether the timer is hidden.');
-          } else if (input.game !== 'answer' && (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max)) throw new Error('Use a whole-number range between 0 and 1,000,000.');
-          const game = input.game === 'timer' ? 'timer' : input.game === 'answer' ? 'answer' : 'number';
+          } else if (input.game === 'imposter') {
+            if (!['words','drawing'].includes(input.mode as string) || !integer(input.rounds,1,5)) throw new Error('Choose word or drawing mode and 1–5 rounds.');
+          } else if ((!input.game || input.game === 'number') && (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max)) throw new Error('Use a whole-number range between 0 and 1,000,000.');
+          const game = (input.game || 'number') as NonNullable<State['game']>;
           this.state={
             code:url.searchParams.get('code')!, game,
             min:game==='number'?input.min as number:0,
             max:game==='number'?input.max as number:500,
             players:[],turn:0,guesses:[],messages:[],
             ...(game==='timer'?{timer:{targetMs:input.targetMs as number,hidden:input.hidden as boolean,round:1,attempts:{},finished:false}}:{}),
-            ...(game==='answer'?{sameAnswer:createAnswerGame()}:{})
+            ...(game==='answer'?{sameAnswer:createAnswerGame()}:{}),
+            ...(game==='imposter'?{imposter:createImposter(input.mode as 'words'|'drawing',input.rounds as number)}:{}),
+            ...(game==='chess'?{chess:createChess(id)}:{})
           };
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
         if (!this.state.players.some(p=>p.id===id)) {
-          if (this.state.players.length>=2) throw new Error('This two-player room is full.');
+          if (this.state.game==='imposter' && this.state.imposter!.phase!=='lobby' && this.state.imposter!.phase!=='finished') throw new Error('This match has started. Join after the reveal.');
+          const capacity=this.state.game==='imposter'?8:2;
+          if (this.state.players.length>=capacity) throw new Error(capacity===2?'This two-player room is full.':'This eight-player room is full.');
           this.state.players.push({id,name:input.name.trim()});
         }
         await this.save(); return json({code:this.state.code,id});
@@ -101,7 +109,7 @@ export class GameRoom extends DurableObject<Env> {
   }
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
-      if(typeof message!=='string'||message.length>1024) throw new Error('Message too large.');
+      if(typeof message!=='string'||message.length>8192) throw new Error('Message too large.');
       const {id}=ws.deserializeAttachment(); const now=Date.now();
       const action=JSON.parse(message);
       if (!action || typeof action!=='object') throw new Error('Invalid action.');

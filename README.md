@@ -52,7 +52,7 @@ npx wrangler secret put LIVEKIT_API_SECRET
 
 ## Implemented
 
-- Two-player private rooms with eight-character invitation codes.
+- Private rooms with eight-character invitation codes: 3–8 players for Imposter, two players for other games.
 - A prominent, selectable invite code with separate copy-code and copy-link controls.
 - Configurable integer ranges from 0 to 1,000,000.
 - Server-held secret numbers, alternating guesses, and exact-hit wins.
@@ -61,6 +61,8 @@ npx wrangler secret put LIVEKIT_API_SECRET
 - Each player starts independently; results reveal when both players have submitted.
 - Same Answer: five unique prompts per match, private answers, shared points, reveal history, and both-player confirmation before advancing or rematching.
 - Answer matching normalizes Unicode width and case, treats punctuation as spaces, and collapses repeated whitespace. Synonyms and plurals are not fuzzy-matched.
+- Guess the Imposter: word or one-stroke drawing modes, 3–8 players, host-selected 1–5 clue rounds, private roles and a single private voting stage. Correct unique top vote catches the imposter; a wrong choice or tied top vote lets the imposter win.
+- Chess: server-validated moves, castling, en passant, promotion/underpromotion, checkmate, automatic repetition/fifty-move/insufficient-material draws, draw offers, resignations and mutually confirmed rematches with swapped colours. No clock or computer opponent.
 - Room text chat, reconnecting WebSockets, and optional LiveKit voice with mute.
 - Room state survives Worker hibernation; inactive rooms expire after 24 hours.
 
@@ -71,3 +73,13 @@ The first exact guess wins, following the requested rules. The starting player s
 Each game has its own illustrated world: the observatory, night circuit, or listening cafe. Original generated artwork is delivered as responsive WebP assets in `public/art`; no UI is baked into those images. Character portraits in the scenery are decorative, not player identities.
 
 CSS provides restrained 3D geometry, hover depth and reveal motion without a WebGL dependency. The header motion control saves its setting locally, and the UI respects the operating system reduced-motion preference. Real elapsed-time measurement is independent of decorative motion. Design tokens and generation prompts are recorded in `design-system/playyard-lounge`.
+
+## Imposter and chess play notes
+
+Imposter starts in a lobby. The first player is the host and deals once 3–8 players have joined. New players may join only in the lobby or after a reveal. Roles and words remain private until deliberately revealed on your screen; the imposter never receives the word until the match ends. Written clues are submitted in turn, or players may describe their clue in voice and mark it given aloud. The host can skip a stalled clue turn after 60 seconds. Voting requires every player; there is no automatic vote or player removal. The host deals the next match after the reveal. Seats are reserved for the lifetime of the room, including disconnected players.
+
+Drawing uses a shared SVG canvas and pointer events, with one continuous stroke per player per round. Pointer release or cancellation finishes the stroke. Other players see it once the turn is submitted, rather than streaming each pointer movement. There is no erasing or undo. Strokes use normalized coordinates and bounded point samples to keep storage and messages small. If transmission fails, retry the captured stroke; reloading before it is accepted loses the local stroke. The server validates turn ownership and coordinates, but cannot prove physical pen continuity or automatically detect letters or meaningful clues. Playing without naming/writing the word is a social rule.
+
+Chess rules use the locally installed chess.js package, not an external API. Move history is persisted and replayed on the server so repetition detection survives reconnects and Worker hibernation. Board orientation follows your colour; select a piece and then a highlighted destination. Promotion asks which piece to choose. Both players confirm a rematch. The rules engine automatically ends drawn positions rather than requiring formal tournament claims.
+
+These games use existing Workers room storage and optional LiveKit voice. No new environment variables, Neon tables, hosted drawing service or paid chess service are required.

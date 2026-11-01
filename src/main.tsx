@@ -23,6 +23,8 @@ import {
 import type { Room } from "livekit-client";
 import { StopTheClock, type TimerSnapshot } from "./StopTheClock";
 import { SameAnswer, type AnswerSnapshot } from "./SameAnswer";
+import { Imposter, type ImposterSnapshot } from "./Imposter";
+import { ChessGame, type ChessSnapshot } from "./ChessGame";
 import { SceneProp } from "./SceneProp";
 import "./style.css";
 type Player = { id: string; name: string; ready: boolean; secret?: number };
@@ -35,7 +37,9 @@ type Snapshot = {
   winner?: string;
   guesses: { player: string; value: number; result: string }[];
   messages: { name: string; text: string }[];
-  game?: "number" | "timer" | "answer";
+  game?: "number" | "timer" | "answer" | "imposter" | "chess";
+  imposter?: ImposterSnapshot;
+  chess?: ChessSnapshot;
   timer?: TimerSnapshot;
   sameAnswer?: AnswerSnapshot;
 };
@@ -72,9 +76,15 @@ function App() {
     [code, setCode] = useState(initial),
     [min, setMin] = useState("0"),
     [max, setMax] = useState("500");
-  const [game, setGame] = useState<"number" | "timer" | "answer">("number"),
+  const [game, setGame] = useState<
+      "number" | "timer" | "answer" | "imposter" | "chess"
+    >("number"),
     [target, setTarget] = useState("10"),
     [hidden, setHidden] = useState(false);
+  const [imposterMode, setImposterMode] = useState<"words" | "drawing">(
+    "words",
+  );
+  const [clueRounds, setClueRounds] = useState("2");
   const [room, setRoom] = useState<Snapshot | null>(null),
     [id, setId] = useState(""),
     [roomCode, setRoomCode] = useState("");
@@ -155,6 +165,8 @@ function App() {
           game,
           targetMs: Math.round(Number(target) * 1000),
           hidden,
+          mode: imposterMode,
+          rounds: Number(clueRounds),
         },
       );
       setId(result.id);
@@ -232,11 +244,11 @@ function App() {
   }
   const theme = roomCode ? room?.game || "number" : "lounge";
   const scenery =
-    theme === "number"
+    theme === "number" || theme === "chess"
       ? "observatory"
       : theme === "timer"
         ? "circuit"
-        : theme === "answer"
+        : theme === "answer" || theme === "imposter"
           ? "cafe"
           : "lounge";
   return (
@@ -329,7 +341,7 @@ function App() {
                 </div>
                 <div className="hero-meta">
                   <span>
-                    <Users size={14} /> 2-player rooms
+                    <Users size={14} /> 2–8 player rooms
                   </span>
                   <span>
                     <Mic size={14} /> Voice + text
@@ -347,7 +359,7 @@ function App() {
             <section id="games" className="games" aria-labelledby="games-title">
               <div className="section-heading">
                 <h2 id="games-title">Choose your game</h2>
-                <span className="muted">Three ways to settle the score.</span>
+                <span className="muted">Find your next friendly rivalry.</span>
               </div>
               <div className="game-grid">
                 {[
@@ -371,6 +383,20 @@ function App() {
                     scene: "cafe",
                     description: "Different minds. Same answer.",
                     tag: "Your shared wavelength",
+                  },
+                  {
+                    id: "imposter" as const,
+                    title: "Guess the Imposter",
+                    scene: "cafe",
+                    description: "Trade clues or draw. Find the one bluffing.",
+                    tag: "Secrets & suspicion",
+                  },
+                  {
+                    id: "chess" as const,
+                    title: "Chess",
+                    scene: "observatory",
+                    description: "Take your seat. Think a few moves ahead.",
+                    tag: "Tactics & strategy",
                   },
                 ].map((item, index) => (
                   <button
@@ -405,7 +431,8 @@ function App() {
                     </div>
                     <div className="game-tags">
                       <span>
-                        <Users size={12} /> 2 players
+                        <Users size={12} />{" "}
+                        {item.id === "imposter" ? "3–8 players" : "2 players"}
                       </span>
                       <span>
                         {item.id === "answer" ? "Cooperative" : "Competitive"}
@@ -442,31 +469,51 @@ function App() {
             <div className="room-heading">
               <div>
                 <div className="eyebrow">
-                  {room?.game === "answer"
-                    ? "THE LISTENING CAFÉ"
-                    : room?.game === "timer"
-                      ? "THE NIGHT CIRCUIT"
-                      : "THE OBSERVATORY"}{" "}
+                  {room?.game === "imposter"
+                    ? "THE SECRET SOCIETY"
+                    : room?.game === "chess"
+                      ? "THE STRATEGY TABLE"
+                      : room?.game === "answer"
+                        ? "THE LISTENING CAFÉ"
+                        : room?.game === "timer"
+                          ? "THE NIGHT CIRCUIT"
+                          : "THE OBSERVATORY"}{" "}
                   / PRIVATE ROOM
                 </div>
                 <h1>
                   {!room
                     ? "Game room"
-                    : room.game === "answer"
-                      ? "Same Answer"
-                      : room.game === "timer"
-                        ? "Stop the Clock"
-                        : "Guess My Number"}
+                    : room.game === "imposter"
+                      ? "Guess the Imposter"
+                      : room.game === "chess"
+                        ? "Chess"
+                        : room.game === "answer"
+                          ? "Same Answer"
+                          : room.game === "timer"
+                            ? "Stop the Clock"
+                            : "Guess My Number"}
                 </h1>
                 <p className="room-subtitle">
-                  {room?.game === "answer"
-                    ? "Two minds. One shared score."
-                    : room?.game === "timer"
-                      ? "Every millisecond has a say."
-                      : "Higher or lower? Read between the guesses."}
+                  {room?.game === "imposter"
+                    ? "One secret. One bluff. One vote."
+                    : room?.game === "chess"
+                      ? "A quiet table. A battle of minds."
+                      : room?.game === "answer"
+                        ? "Two minds. One shared score."
+                        : room?.game === "timer"
+                          ? "Every millisecond has a say."
+                          : "Higher or lower? Read between the guesses."}
                 </p>
               </div>
-              <SceneProp theme={room?.game || "number"} />
+              <SceneProp
+                theme={
+                  room?.game === "imposter"
+                    ? "answer"
+                    : room?.game === "chess"
+                      ? "number"
+                      : room?.game || "number"
+                }
+              />
               <button className="secondary" onClick={() => void copy("link")}>
                 <Copy size={17} /> Copy invite link
               </button>
@@ -499,15 +546,24 @@ function App() {
                     {connected ? "Connected" : "Reconnecting…"}
                   </span>
                   <span>
-                    {room?.game === "answer"
-                      ? `Shared score ${room.sameAnswer!.score} / ${room.sameAnswer!.totalRounds}`
-                      : room?.game === "timer"
-                        ? `Target ${(room.timer!.targetMs / 1000).toFixed(3)}s`
-                        : `Range ${room?.min ?? "…"} — ${room?.max ?? "…"}`}
+                    {room?.game === "imposter"
+                      ? `${room.players.length} / 8 players · ${room.imposter!.mode === "words" ? "Word clues" : "Drawing"}`
+                      : room?.game === "chess"
+                        ? "Standard chess · No clock"
+                        : room?.game === "answer"
+                          ? `Shared score ${room.sameAnswer!.score} / ${room.sameAnswer!.totalRounds}`
+                          : room?.game === "timer"
+                            ? `Target ${(room.timer!.targetMs / 1000).toFixed(3)}s`
+                            : `Range ${room?.min ?? "…"} — ${room?.max ?? "…"}`}
                   </span>
                 </div>
-                <div className="players">
-                  {[me, opponent].map((p, i) => (
+                <div
+                  className={`players ${room?.game === "imposter" ? "party-players" : ""}`}
+                >
+                  {(room?.game === "imposter"
+                    ? room.players
+                    : [me, opponent]
+                  ).map((p, i) => (
                     <div key={i} className="player">
                       <span className={`avatar avatar-${i}`}>
                         {p?.name.slice(0, 1).toUpperCase() || "?"}
@@ -519,19 +575,27 @@ function App() {
                         </strong>
                         <small>
                           {p
-                            ? room?.game === "answer"
-                              ? p.ready
-                                ? "Answer locked in"
-                                : "Thinking of an answer"
-                              : room?.game === "timer"
-                                ? p.ready
-                                  ? "Time submitted"
-                                  : room.timer?.attempts[p.id]?.started
-                                    ? "Timer started"
-                                    : "Ready to play"
-                                : p.ready
-                                  ? "Number locked in"
-                                  : "Choosing a secret"
+                            ? room?.game === "imposter"
+                              ? p.id === room.players[0].id
+                                ? "Host"
+                                : "Player"
+                              : room?.game === "chess"
+                                ? p.id === room.chess?.whiteId
+                                  ? "White pieces"
+                                  : "Black pieces"
+                                : room?.game === "answer"
+                                  ? p.ready
+                                    ? "Answer locked in"
+                                    : "Thinking of an answer"
+                                  : room?.game === "timer"
+                                    ? p.ready
+                                      ? "Time submitted"
+                                      : room.timer?.attempts[p.id]?.started
+                                        ? "Timer started"
+                                        : "Ready to play"
+                                    : p.ready
+                                      ? "Number locked in"
+                                      : "Choosing a secret"
                             : "Share your invitation to get started"}
                         </small>
                       </div>
@@ -544,6 +608,22 @@ function App() {
                     <h2>Opening your room…</h2>
                     <p>Connecting to the game server.</p>
                   </div>
+                ) : room.game === "imposter" && room.imposter ? (
+                  <Imposter
+                    game={room.imposter}
+                    id={id}
+                    players={room.players}
+                    connected={connected}
+                    send={send}
+                  />
+                ) : room.game === "chess" && room.chess ? (
+                  <ChessGame
+                    game={room.chess}
+                    id={id}
+                    players={room.players}
+                    connected={connected}
+                    send={send}
+                  />
                 ) : room.game === "answer" && room.sameAnswer ? (
                   <SameAnswer
                     key={`${room.sameAnswer.match}:${room.sameAnswer.round}`}
@@ -872,11 +952,15 @@ function App() {
             <div className="eyebrow">
               {modal === "join"
                 ? "PRIVATE GAME ROOM"
-                : game === "answer"
-                  ? "SAME ANSWER"
-                  : game === "timer"
-                    ? "STOP THE CLOCK"
-                    : "GUESS MY NUMBER"}
+                : game === "imposter"
+                  ? "GUESS THE IMPOSTER"
+                  : game === "chess"
+                    ? "CHESS"
+                    : game === "answer"
+                      ? "SAME ANSWER"
+                      : game === "timer"
+                        ? "STOP THE CLOCK"
+                        : "GUESS MY NUMBER"}
             </div>
             <h2 id="modal-title">
               {modal === "create"
@@ -887,7 +971,9 @@ function App() {
             </h2>
             <p>
               {modal === "create"
-                ? "Make a private room and invite one friend."
+                ? game === "imposter"
+                  ? "Make a private room and invite 2–7 friends."
+                  : "Make a private room and invite one friend."
                 : "Enter your nickname and the eight-character room code."}
             </p>
             <form onSubmit={enter}>
@@ -909,14 +995,59 @@ function App() {
                     id="game"
                     value={game}
                     onChange={(e) =>
-                      setGame(e.target.value as "number" | "timer" | "answer")
+                      setGame(
+                        e.target.value as
+                          "number" | "timer" | "answer" | "imposter" | "chess",
+                      )
                     }
                   >
                     <option value="number">Guess My Number</option>
                     <option value="timer">Stop the Clock</option>
                     <option value="answer">Same Answer</option>
+                    <option value="imposter">Guess the Imposter</option>
+                    <option value="chess">Chess</option>
                   </select>
-                  {game === "answer" ? (
+                  {game === "imposter" ? (
+                    <>
+                      <label htmlFor="imposter-mode">Clue style</label>
+                      <select
+                        id="imposter-mode"
+                        value={imposterMode}
+                        onChange={(e) =>
+                          setImposterMode(e.target.value as "words" | "drawing")
+                        }
+                      >
+                        <option value="words">Describe the word</option>
+                        <option value="drawing">One-stroke drawing</option>
+                      </select>
+                      <label htmlFor="clue-rounds">
+                        Clue rounds before voting
+                      </label>
+                      <select
+                        id="clue-rounds"
+                        value={clueRounds}
+                        onChange={(e) => setClueRounds(e.target.value)}
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n} {n === 1 ? "round" : "rounds"}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="muted">
+                        3–8 players. One imposter without a word. One final
+                        vote; a wrong choice or tie lets the imposter win.
+                      </p>
+                    </>
+                  ) : game === "chess" ? (
+                    <div className="answer-settings">
+                      <p>
+                        <b>Standard two-player chess.</b> Legal moves,
+                        promotion, castling, draws and rematches. The host
+                        starts as white. No clock or computer opponent.
+                      </p>
+                    </div>
+                  ) : game === "answer" ? (
                     <div className="answer-settings">
                       <Users size={20} />
                       <p>

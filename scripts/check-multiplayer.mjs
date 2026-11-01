@@ -92,3 +92,5 @@ try {
   await a.send({type:'answer-submit',match:1,round:1,text:'Old match'});assert.match((await a.next()).error,/ended/);
   console.log('PASS: all three games, hidden answers/results, five-round cooperative scoring, confirmations, rematches, reconnects, stale-action rejection, chat, capacity and voice authorization.');
 } finally {a?.ws.close();b?.ws.close();}
+
+await import('./check-party-games.mjs');
