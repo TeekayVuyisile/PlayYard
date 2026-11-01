@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run game-rule tests
+        run: npm test
+
+      - name: Typecheck and build
+        run: npm run build
+
+      - name: Test multiplayer rooms
+        shell: bash
+        run: |
+          node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5174 --strictPort > "$RUNNER_TEMP/game-hub-vite.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:5174/ > /dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              cat "$RUNNER_TEMP/game-hub-vite.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            cat "$RUNNER_TEMP/game-hub-vite.log"
+            exit 1
+          fi
+          if ! TEST_BASE_URL=http://127.0.0.1:5174 npm run test:multiplayer; then
+            cat "$RUNNER_TEMP/game-hub-vite.log"
+            exit 1
+          fi
