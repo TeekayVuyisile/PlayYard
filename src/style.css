@@ -2638,3 +2638,301 @@ form label {
     min-height: 44px;
   }
 }
+/* Hidden duels use the existing cinematic shell and real, labelled game tokens. */
+.duel-status {
+  margin-bottom: 24px;
+}
+.duel-status p {
+  color: #b4c0d1;
+  max-width: 620px;
+}
+.prism-arrangement {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0 16px;
+  max-width: 520px;
+}
+.crystal-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 15px 8px;
+  min-width: 0;
+  border: 1px solid #44536a;
+  background: #182332;
+  border-radius: 8px;
+  color: #edf2f7;
+}
+.crystal-slot.chosen {
+  border-color: #c8f36b;
+  box-shadow: 0 0 0 2px #c8f36b44;
+  background: #24342e;
+}
+.crystal-slot:disabled {
+  opacity: 0.65;
+}
+.crystal {
+  position: relative;
+  display: inline-flex;
+  width: 64px;
+  max-width: 100%;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 5px 6px #0005);
+}
+.crystal svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.crystal b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #101a28;
+  font-size: 22px;
+  font-weight: 800;
+}
+.crystal-blue {
+  color: #87caff;
+}
+.crystal-green {
+  color: #92e2bd;
+}
+.crystal-red {
+  color: #ffa4b4;
+}
+.crystal-yellow {
+  color: #f5e69b;
+}
+.crystal-small {
+  width: 28px;
+}
+.crystal-small b {
+  font-size: 12px;
+}
+.crystal-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+}
+.crystal-name {
+  font-size: 12px;
+  text-transform: capitalize;
+}
+.prism-controls > .muted {
+  font-size: 13px;
+  max-width: 520px;
+}
+.prism-log {
+  grid-template-columns: 1fr !important;
+}
+.prism-log li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  font-size: 13px;
+}
+.prism-log li > span:first-child {
+  min-width: 85px;
+  overflow-wrap: anywhere;
+}
+.prism-log strong {
+  font-size: 12px;
+  color: #d6e5ba;
+}
+.duel-reveal {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+.duel-reveal > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+.duel-reveal > button {
+  justify-self: start;
+}
+.duel-lives {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+.duel-lives > div {
+  min-width: 0;
+  border-bottom: 1px solid #354154;
+  padding-bottom: 15px;
+}
+.duel-lives strong {
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.duel-lives span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+.duel-lives b {
+  margin-left: 5px;
+  font-size: 12px;
+  color: #dce3ed;
+}
+.life-full {
+  color: #ffa4b4;
+}
+.life-lost {
+  color: #6e7e92;
+}
+.snack-tray {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+  max-width: 560px;
+}
+.snack-token {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  min-height: 104px;
+  padding: 12px 5px;
+  border: 1px solid #44536a;
+  border-radius: 8px;
+  background: #182332;
+  color: #c8bce9;
+  transition:
+    border-color 0.18s,
+    background 0.18s,
+    transform 0.18s;
+}
+.snack-token > span:last-child {
+  font: 11px monospace;
+  margin-top: 9px;
+  color: #d3ddec;
+  text-align: center;
+}
+.snack-token.trapped {
+  border-color: #b9708c;
+  background: #30212f;
+}
+.snack-token.trapped:not(:disabled):hover {
+  border-color: #ffabc1;
+}
+.snack-token.eaten {
+  opacity: 0.75;
+}
+.snack-token:disabled {
+  cursor: default;
+}
+.moon-snack {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  max-width: 100%;
+}
+.moon-snack svg {
+  width: 100%;
+  height: 100%;
+  max-width: 46px;
+}
+.moon-snack.snack-poison {
+  color: #ffabc1;
+}
+.moon-snack.snack-safe {
+  color: #c8f36b;
+}
+.snack-safe svg,
+.snack-poison svg {
+  width: 28px;
+  height: 28px;
+}
+.bite-result {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  padding: 12px;
+  border-radius: 5px;
+  background: #1c2834;
+}
+.bite-poison {
+  color: #ffc2cf;
+}
+.bite-safe {
+  color: #d1efa2;
+}
+.poison-game .secret-card {
+  margin-top: 24px;
+}
+.poison-game .secret-card p {
+  margin: 9px 0 0;
+  font-size: 14px;
+}
+.game-prism .game-visual img {
+  filter: hue-rotate(15deg) saturate(0.75);
+}
+.game-poison .game-visual img {
+  filter: hue-rotate(340deg) saturate(0.75);
+}
+@media (max-width: 650px) {
+  .prism-arrangement {
+    gap: 7px;
+  }
+  .crystal-slot {
+    padding: 12px 6px;
+    gap: 7px;
+  }
+  .crystal-slot .crystal {
+    width: 54px;
+  }
+  .crystal-name {
+    font-size: 11px;
+  }
+  .snack-tray {
+    gap: 7px;
+  }
+  .snack-token {
+    min-height: 84px;
+    padding: 9px 3px;
+  }
+  .snack-token > span:last-child {
+    font-size: 9px;
+  }
+  .moon-snack {
+    width: 36px;
+    height: 36px;
+  }
+  .prism-log li {
+    gap: 8px;
+  }
+  .duel-lives span {
+    gap: 3px;
+  }
+  .duel-lives svg {
+    width: 16px;
+  }
+}
+.prism-game h2,
+.poison-game h2,
+.poison-game h3 {
+  overflow-wrap: anywhere;
+}
+.duel-reveal > div > span:not(.crystal-row) {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}

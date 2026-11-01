@@ -63,6 +63,8 @@ npx wrangler secret put LIVEKIT_API_SECRET
 - Answer matching normalizes Unicode width and case, treats punctuation as spaces, and collapses repeated whitespace. Synonyms and plurals are not fuzzy-matched.
 - Guess the Imposter: word or one-stroke drawing modes, 3–8 players, host-selected 1–5 clue rounds, private roles and a single private voting stage. Correct unique top vote catches the imposter; a wrong choice or tied top vote lets the imposter win.
 - Chess: server-validated moves, castling, en passant, promotion/underpromotion, checkmate, automatic repetition/fifty-move/insufficient-material draws, draw offers, resignations and mutually confirmed rematches with swapped colours. No clock or computer opponent.
+- Prism Code: each player seals a four-colour permutation for the other to solve. Alternate guesses receive only a correct-position count; the first exact match wins. Colours also have letter labels, and crystals swap using buttons that work with touch or keyboard.
+- Avoid the Poison: two separate trays of ten moon-shaped snack tokens. Each player privately traps three on the other player’s tray, then takes turns picking from their own. The third poison loses the match. Remaining traps reveal only at the end.
 - Room text chat, reconnecting WebSockets, and optional LiveKit voice with mute.
 - Room state survives Worker hibernation; inactive rooms expire after 24 hours.
 
@@ -83,3 +85,13 @@ Drawing uses a shared SVG canvas and pointer events, with one continuous stroke 
 Chess rules use the locally installed chess.js package, not an external API. Move history is persisted and replayed on the server so repetition detection survives reconnects and Worker hibernation. Board orientation follows your colour; select a piece and then a highlighted destination. Promotion asks which piece to choose. Both players confirm a rematch. The rules engine automatically ends drawn positions rather than requiring formal tournament claims.
 
 These games use existing Workers room storage and optional LiveKit voice. No new environment variables, Neon tables, hosted drawing service or paid chess service are required.
+
+## Hidden-duel play notes
+
+Prism Code and Avoid the Poison both support two players, setup before the second player arrives, server-held private choices, and mutually confirmed rematches. The starter changes each match. Submitted setup cannot be changed. Only your own secret code or the traps you set are included in your private snapshot; the opponent’s setup is revealed when the match finishes. Accepted guesses and picks survive reconnects, while unsubmitted setup and guess arrangements are local drafts. Re-enter the room through its invite code after reloading to reconnect to your seat.
+
+In Prism Code, all four colours appear exactly once. Select two crystal positions to swap them, then seal the secret or submit a guess. Feedback is an exact-position count, without marking particular positions. Both players’ guesses and feedback are public. Repeating your own previous guess is rejected.
+
+In Avoid the Poison, setup selections mark the opponent’s tray, while gameplay selections always pick from your own tray. Slots are independent across the two trays. The server validates turn order, stale turn numbers, picked slots, poison hits and the three-life loss condition. Safe picks do not restore or consume lives.
+
+These additions use the existing room storage, chat and optional voice. They add no packages, APIs, environment variables or database migrations. The existing GitHub multiplayer command includes both new games automatically.

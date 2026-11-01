@@ -1,3 +1,4 @@
+import { prismAction, prismView, poisonAction, poisonView, type PrismGame, type PoisonGame } from './hidden-duels';
 import { imposterAction, imposterView, type ImposterGame } from './imposter';
 import { chessAction, chessView, type ChessGame } from './chess';
 import { answerAction, answerView, type AnswerGame } from './same-answer';
@@ -11,7 +12,7 @@ export type TimerRound = {
 export type State = {
   code: string; min: number; max: number; players: Player[]; turn: number;
   guesses: Guess[]; winner?: string; messages: { name: string; text: string }[];
-  game?: 'number' | 'timer' | 'answer' | 'imposter' | 'chess'; timer?: TimerRound; sameAnswer?: AnswerGame; imposter?: ImposterGame; chess?: ChessGame;
+  game?: 'number' | 'timer' | 'answer' | 'imposter' | 'chess' | 'prism' | 'poison'; timer?: TimerRound; sameAnswer?: AnswerGame; imposter?: ImposterGame; chess?: ChessGame; prism?: PrismGame; poison?: PoisonGame;
 };
 export function integer(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max;
@@ -20,6 +21,8 @@ export function act(s: State, id: string, action: Record<string, unknown>, now =
   const index = s.players.findIndex(p => p.id === id);
   if (index < 0) throw new Error('Join this room first.');
   const p = s.players[index];
+  if (action.type !== 'chat' && s.game === 'prism') {prismAction(s.prism!,s.players,id,action);return;}
+  if (action.type !== 'chat' && s.game === 'poison') {poisonAction(s.poison!,s.players,id,action);return;}
   if (action.type !== 'chat' && s.game === 'imposter') {
     imposterAction(s.imposter!,s.players,id,action,now); return;
   }
@@ -102,5 +105,5 @@ export function view(s: State, id: string) {
       ...(playerId === id || s.timer!.finished ? { elapsedMs: attempt.elapsedMs } : {})
     }]))
   } : undefined;
-  return { ...s, timer, imposter:s.imposter?imposterView(s.imposter,id):undefined, chess:s.chess?chessView(s.chess):undefined, sameAnswer:s.sameAnswer?answerView(s.sameAnswer,id):undefined, players: s.players.map(p => ({ id: p.id, name: p.name, ready: s.game === 'answer' ? Object.hasOwn(s.sameAnswer!.answers,p.id) : s.game === 'timer' ? s.timer?.attempts[p.id]?.elapsedMs !== undefined : p.secret !== undefined, ...(p.id === id ? { secret: p.secret } : {}) })) };
+  return { ...s, timer, prism:s.prism?prismView(s.prism,id):undefined, poison:s.poison?poisonView(s.poison,id):undefined, imposter:s.imposter?imposterView(s.imposter,id):undefined, chess:s.chess?chessView(s.chess):undefined, sameAnswer:s.sameAnswer?answerView(s.sameAnswer,id):undefined, players: s.players.map(p => ({ id: p.id, name: p.name, ready: s.game === 'prism' ? Object.hasOwn(s.prism!.codes,p.id) : s.game === 'poison' ? Object.hasOwn(s.poison!.traps,p.id) : s.game === 'answer' ? Object.hasOwn(s.sameAnswer!.answers,p.id) : s.game === 'timer' ? s.timer?.attempts[p.id]?.elapsedMs !== undefined : p.secret !== undefined, ...(p.id === id ? { secret: p.secret } : {}) })) };
 }
