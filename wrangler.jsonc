@@ -4,6 +4,19 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "LIVEKIT_URL": "wss://playyard-yspqwnpz.livekit.cloud"
+  },
+  // PR deployments use this block. An empty URL keeps preview voice off until
+  // a development LiveKit project and its preview secrets are configured.
+  "previews": {
+    "vars": { "LIVEKIT_URL": "" },
+    // This local class gets a separate namespace per preview, keeping test
+    // rooms and their storage isolated from the production game rooms.
+    "durable_objects": {
+      "bindings": [{ "name": "ROOMS", "class_name": "GameRoom" }]
+    }
+  },
   "assets": { "directory": "./dist/client", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
   "durable_objects": { "bindings": [{ "name": "ROOMS", "class_name": "GameRoom" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GameRoom"] }]
