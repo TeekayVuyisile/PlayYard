@@ -1,6 +1,6 @@
-# Game Hub
+# PlayYard
 
-An invite-only, mobile-friendly party game beta. The working title is temporary.
+An invite-only, mobile-friendly party-game lounge with original cinematic anime scenery and a graphite/lime interface.
 
 ## Local development
 
@@ -65,3 +65,9 @@ npx wrangler secret put LIVEKIT_API_SECRET
 - Room state survives Worker hibernation; inactive rooms expire after 24 hours.
 
 The first exact guess wins, following the requested rules. The starting player switches on rematches. Same Answer is cooperative: both players share a score out of five. Submitted answers survive reconnects and cannot be edited; incomplete drafts are local to the current page. Stop the Clock measures elapsed time locally with `performance.now()` and sends only start/stop events; the server validates plausible duration, locks submitted results, and rejects stale round actions. This is casual scoring, not tamper-proof timing. A running timer cannot be resumed accurately after a page reload: reset the unfinished attempt to retry. Transient connection loss preserves a captured stop in the current page and attempts submission on reconnect. Public matchmaking, accounts, and XP are not implemented.
+
+## Visual design
+
+Each game has its own illustrated world: the observatory, night circuit, or listening cafe. Original generated artwork is delivered as responsive WebP assets in `public/art`; no UI is baked into those images. Character portraits in the scenery are decorative, not player identities.
+
+CSS provides restrained 3D geometry, hover depth and reveal motion without a WebGL dependency. The header motion control saves its setting locally, and the UI respects the operating system reduced-motion preference. Real elapsed-time measurement is independent of decorative motion. Design tokens and generation prompts are recorded in `design-system/playyard-lounge`.
