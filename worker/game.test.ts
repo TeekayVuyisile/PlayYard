@@ -20,3 +20,52 @@ describe('Guess My Number rules', () => {
     act(s,'b',{type:'secret',value:500}); act(s,'a',{type:'guess',value:500}); expect(s.winner).toBe('a');
   });
 });
+
+function timerRoom(): State {
+  return { ...room(), game:'timer', timer:{targetMs:10000,hidden:true,round:1,attempts:{},finished:false} };
+}
+describe('Stop the Clock rules', () => {
+  it('hides opposing results until both submit, then selects the closest time', () => {
+    const s=timerRoom();
+    act(s,'a',{type:'timer-start',round:1},1000);
+    act(s,'b',{type:'timer-start',round:1},2000);
+    act(s,'a',{type:'timer-stop',round:1,elapsedMs:9900},10900);
+    expect(view(s,'b').timer?.attempts.a).toEqual({started:true,submitted:true});
+    expect(view(s,'a').timer?.attempts.a.elapsedMs).toBe(9900);
+    expect(s.winner).toBeUndefined();
+    expect(()=>act(s,'a',{type:'timer-stop',round:1,elapsedMs:10000},11000)).toThrow('locked');
+    act(s,'b',{type:'timer-stop',round:1,elapsedMs:10050},12050);
+    expect(s.winner).toBe('b');expect(s.timer?.finished).toBe(true);
+    expect(view(s,'b').timer?.attempts.a.elapsedMs).toBe(9900);
+    act(s,'a',{type:'rematch',round:1},13000);
+    expect(s.timer?.round).toBe(2);expect(s.timer?.attempts).toEqual({});expect(s.winner).toBeUndefined();
+    expect(()=>act(s,'b',{type:'rematch',round:1})).toThrow();
+    expect(()=>act(s,'b',{type:'timer-start',round:1})).toThrow('ended');
+  });
+  it('supports draws and blocks premature rounds, invalid times and cross-game actions', () => {
+    const s=timerRoom();
+    expect(()=>act(s,'a',{type:'timer-stop',round:1,elapsedMs:10000})).toThrow('Start');
+    expect(()=>act(s,'a',{type:'rematch',round:1})).toThrow('Finish');
+    expect(()=>act(s,'a',{type:'secret',value:30})).toThrow('Stop the Clock');
+    expect(()=>act(room(),'a',{type:'timer-start',round:1})).toThrow('Guess My Number');
+    act(s,'a',{type:'timer-start',round:1},0);act(s,'b',{type:'timer-start',round:1},0);
+    for(const elapsedMs of [-1,60001,1.5,NaN,'10000']) expect(()=>act(s,'a',{type:'timer-stop',round:1,elapsedMs},10000)).toThrow('Invalid');
+    expect(()=>act(s,'a',{type:'timer-stop',round:1,elapsedMs:10000},200)).toThrow('sync');
+    act(s,'a',{type:'timer-stop',round:1,elapsedMs:9900},9900);
+    act(s,'b',{type:'timer-stop',round:1,elapsedMs:10100},10100);
+    expect(s.timer?.draw).toBe(true);expect(s.timer?.finished).toBe(true);expect(s.winner).toBeUndefined();
+    expect(()=>act(s,'a',{type:'timer-start',round:1})).toThrow('ended');
+    act(s,'a',{type:'rematch',round:1});expect(s.timer?.draw).toBeUndefined();
+  });
+  it('allows interruption recovery without changing submitted times', () => {
+    const s=timerRoom();s.players.pop();
+    expect(()=>act(s,'a',{type:'timer-start',round:1})).toThrow('join');
+    s.players.push({id:'b',name:'B'});
+    act(s,'a',{type:'timer-start',round:1},0);
+    expect(()=>act(s,'a',{type:'timer-start',round:1},100)).toThrow('already');
+    act(s,'a',{type:'timer-reset',round:1},100);expect(s.timer?.attempts.a).toBeUndefined();
+    act(s,'a',{type:'timer-start',round:1},1000);
+    act(s,'a',{type:'timer-stop',round:1,elapsedMs:10000},11000);
+    expect(()=>act(s,'a',{type:'timer-reset',round:1})).toThrow('submitted');
+  });
+});

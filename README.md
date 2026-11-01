@@ -24,23 +24,26 @@ LiveKit uses its own quota; voice is optional and text/gameplay continue indepen
 ```powershell
 npm test
 npm run build
+# With the local server running in another terminal:
+npm run test:multiplayer
 ```
 
 ## Deploy to your Cloudflare account
 
-GitHub is optional. Authenticate using Cloudflare's CLI, then deploy directly:
+Production uses Cloudflare Workers Builds connected to GitHub: changes merged into `main` deploy automatically. Use `npm test && npm run build` as the build command and `npx wrangler deploy` as the production deploy command. PR previews use `npx wrangler preview`, with isolated room storage and voice disabled until preview credentials are configured.
+
+For an explicitly chosen manual deployment instead, authenticate using Cloudflare's CLI:
 
 ```powershell
 npx wrangler login
 npm run deploy
 ```
 
-The configuration creates SQLite-backed Durable Objects compatible with Workers Free. The deployment prints the free `workers.dev` address. Keep the Workers plan on Free. D1 is intentionally deferred until persistent profiles are introduced.
+The configuration creates SQLite-backed Durable Objects compatible with Workers Free. The deployment prints the free `workers.dev` address. Keep the Workers plan on Free. Neon PostgreSQL is planned for persistent profiles and history; it is not connected yet. Active room state remains in Durable Objects.
 
-Set production LiveKit configuration using interactive secret prompts (enter each value privately):
+The public production LiveKit URL is declared in `wrangler.jsonc`. Set the two credentials using interactive secret prompts (enter each value privately):
 
 ```powershell
-npx wrangler secret put LIVEKIT_URL
 npx wrangler secret put LIVEKIT_API_KEY
 npx wrangler secret put LIVEKIT_API_SECRET
 ```
@@ -51,7 +54,9 @@ npx wrangler secret put LIVEKIT_API_SECRET
 - Configurable integer ranges from 0 to 1,000,000.
 - Server-held secret numbers, alternating guesses, and exact-hit wins.
 - Server-generated higher/lower hints, guess history, and rematches.
+- Stop the Clock with configurable 1–30 second targets, visible or hidden timing, private submissions, closest-time scoring, draws, and rematches.
+- Each player starts independently; results reveal when both players have submitted.
 - Room text chat, reconnecting WebSockets, and optional LiveKit voice with mute.
 - Room state survives Worker hibernation; inactive rooms expire after 24 hours.
 
-The first exact guess wins, following the requested rules. The starting player switches on rematches. Stop the Clock and Same Answer are visibly marked as future games. No public matchmaking, accounts, XP, or deployed production service is represented as complete.
+The first exact guess wins, following the requested rules. The starting player switches on rematches. Same Answer is visibly marked as a future game. Stop the Clock measures elapsed time locally with `performance.now()` and sends only start/stop events; the server validates plausible duration, locks submitted results, and rejects stale round actions. This is casual scoring, not tamper-proof timing. A running timer cannot be resumed accurately after a page reload: reset the unfinished attempt to retry. Transient connection loss preserves a captured stop in the current page and attempts submission on reconnect. Public matchmaking, accounts, and XP are not implemented.
