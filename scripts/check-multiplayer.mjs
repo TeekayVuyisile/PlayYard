@@ -94,3 +94,5 @@ try {
 } finally {a?.ws.close();b?.ws.close();}
 
 await import('./check-party-games.mjs');
+
+await import('./check-hidden-duels.mjs');

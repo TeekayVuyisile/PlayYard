@@ -18,6 +18,9 @@ Approved direction: mature cinematic anime, architectural framing, graphite surf
 - Guess the Imposter: secret-society table, using the existing cafe scene with a shared dark drawing surface and player stroke colours.
 - Chess: strategy table, using the observatory scene with a slate/ivory board and lime legal-move markers.
 
+- Prism Code: prism vault in the observatory, faceted SVG crystals in four colours with B/G/R/Y labels; choose two positions to swap.
+- Avoid the Poison: midnight snack table in the cafe, crescent-shaped SVG tokens, numbered trays, explicit safe/poison labels and three-heart life counters.
+
 ## Motion and access
 
 CSS geometry supplies a rotating 3D artifact, dimensional timing prop and floating notes. Hover tilt, scene arrival and answer reveals are restrained. There is no WebGL dependency. Respect prefers-reduced-motion and the persisted manual motion toggle; never animate the gameplay clock for decoration. Keep interactive content opaque enough to read. Inputs stay at least 16px on phones. Primary controls and the motion toggle have at least 44px touch targets.

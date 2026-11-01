@@ -1,3 +1,4 @@
+import { createPrism, createPoison } from './hidden-duels';
 import { createImposter } from './imposter';
 import { createChess } from './chess';
 import { DurableObject } from 'cloudflare:workers';
@@ -60,7 +61,7 @@ export class GameRoom extends DurableObject<Env> {
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
-          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer' && input.game !== 'imposter' && input.game !== 'chess') throw new Error('Choose an available game.');
+          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer' && input.game !== 'imposter' && input.game !== 'chess' && input.game !== 'prism' && input.game !== 'poison') throw new Error('Choose an available game.');
           if (input.game === 'timer') {
             if (!integer(input.targetMs,1000,30000)) throw new Error('Choose a target between 1 and 30 seconds.');
             if (typeof input.hidden !== 'boolean') throw new Error('Choose whether the timer is hidden.');
@@ -76,7 +77,9 @@ export class GameRoom extends DurableObject<Env> {
             ...(game==='timer'?{timer:{targetMs:input.targetMs as number,hidden:input.hidden as boolean,round:1,attempts:{},finished:false}}:{}),
             ...(game==='answer'?{sameAnswer:createAnswerGame()}:{}),
             ...(game==='imposter'?{imposter:createImposter(input.mode as 'words'|'drawing',input.rounds as number)}:{}),
-            ...(game==='chess'?{chess:createChess(id)}:{})
+            ...(game==='chess'?{chess:createChess(id)}:{}),
+            ...(game==='prism'?{prism:createPrism()}:{}),
+            ...(game==='poison'?{poison:createPoison()}:{})
           };
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
