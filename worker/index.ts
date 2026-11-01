@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { AccessToken } from 'livekit-server-sdk';
 import { act, view, integer, type State } from './game';
+import { createAnswerGame } from './same-answer';
 interface Env { ROOMS: DurableObjectNamespace<GameRoom>; LIVEKIT_URL?: string; LIVEKIT_API_KEY?: string; LIVEKIT_API_SECRET?: string }
 const json = (data: unknown, status = 200) => Response.json(data, { status });
 export default {
@@ -57,12 +58,20 @@ export class GameRoom extends DurableObject<Env> {
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
-          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer') throw new Error('Choose an available game.');
+          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer') throw new Error('Choose an available game.');
           if (input.game === 'timer') {
             if (!integer(input.targetMs,1000,30000)) throw new Error('Choose a target between 1 and 30 seconds.');
             if (typeof input.hidden !== 'boolean') throw new Error('Choose whether the timer is hidden.');
-          } else if (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max) throw new Error('Use a whole-number range between 0 and 1,000,000.');
-          this.state={code:url.searchParams.get('code')!,min:input.game==='timer'?0:input.min as number,max:input.game==='timer'?500:input.max as number,players:[],turn:0,guesses:[],messages:[],game:input.game==='timer'?'timer':'number',...(input.game==='timer'?{timer:{targetMs:input.targetMs as number,hidden:input.hidden as boolean,round:1,attempts:{},finished:false}}:{})};
+          } else if (input.game !== 'answer' && (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max)) throw new Error('Use a whole-number range between 0 and 1,000,000.');
+          const game = input.game === 'timer' ? 'timer' : input.game === 'answer' ? 'answer' : 'number';
+          this.state={
+            code:url.searchParams.get('code')!, game,
+            min:game==='number'?input.min as number:0,
+            max:game==='number'?input.max as number:500,
+            players:[],turn:0,guesses:[],messages:[],
+            ...(game==='timer'?{timer:{targetMs:input.targetMs as number,hidden:input.hidden as boolean,round:1,attempts:{},finished:false}}:{}),
+            ...(game==='answer'?{sameAnswer:createAnswerGame()}:{})
+          };
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
         if (!this.state.players.some(p=>p.id===id)) {
