@@ -1,0 +1,4 @@
+# Copy to .dev.vars and fill in privately. Never put these in VITE_ variables.
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
