@@ -53,12 +53,16 @@ export class GameRoom extends DurableObject<Env> {
     try {
       if (url.pathname==='/create' || url.pathname==='/join') {
         if (req.method!=='POST') return json({error:'POST required.'},405);
-        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown};
+        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown};
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
-          if (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max) throw new Error('Use a whole-number range between 0 and 1,000,000.');
-          this.state={code:url.searchParams.get('code')!,min:input.min,max:input.max,players:[],turn:0,guesses:[],messages:[]};
+          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer') throw new Error('Choose an available game.');
+          if (input.game === 'timer') {
+            if (!integer(input.targetMs,1000,30000)) throw new Error('Choose a target between 1 and 30 seconds.');
+            if (typeof input.hidden !== 'boolean') throw new Error('Choose whether the timer is hidden.');
+          } else if (!integer(input.min,0,1000000) || !integer(input.max,0,1000000) || input.min>=input.max) throw new Error('Use a whole-number range between 0 and 1,000,000.');
+          this.state={code:url.searchParams.get('code')!,min:input.game==='timer'?0:input.min as number,max:input.game==='timer'?500:input.max as number,players:[],turn:0,guesses:[],messages:[],game:input.game==='timer'?'timer':'number',...(input.game==='timer'?{timer:{targetMs:input.targetMs as number,hidden:input.hidden as boolean,round:1,attempts:{},finished:false}}:{})};
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
         if (!this.state.players.some(p=>p.id===id)) {
@@ -90,10 +94,11 @@ export class GameRoom extends DurableObject<Env> {
     try {
       if(typeof message!=='string'||message.length>1024) throw new Error('Message too large.');
       const {id}=ws.deserializeAttachment(); const now=Date.now();
-      if (now-(this.lastAction.get(id)||0)<250) throw new Error('Please slow down.');
-      this.lastAction.set(id,now);
       const action=JSON.parse(message);
       if (!action || typeof action!=='object') throw new Error('Invalid action.');
+      const actionKey = `${id}:${['timer-start','timer-stop','timer-reset'].includes(action.type) ? action.type : 'other'}`;
+      if (now-(this.lastAction.get(actionKey)||0)<250) throw new Error('Please slow down.');
+      this.lastAction.set(actionKey,now);
       act(this.state!,id,action); await this.save();
     } catch(e) { ws.send(JSON.stringify({type:'error',error:e instanceof Error?e.message:'Invalid action.'})); }
   }
