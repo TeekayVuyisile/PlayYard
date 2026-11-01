@@ -28,6 +28,8 @@ npm run build
 npm run test:multiplayer
 ```
 
+GitHub Actions runs the same checks on PRs targeting `main` and on pushes to `main`. The `Verify app` job installs locked dependencies with Node 24, runs the rule tests, builds both bundles, and starts a fresh local Worker on port 5174 for the multiplayer tests. It requires no service credentials and does not deploy. Configure `Verify app` as a required status check after its first successful PR run. Cloudflare remains responsible for preview and production deployments.
+
 ## Deploy to your Cloudflare account
 
 Production uses Cloudflare Workers Builds connected to GitHub: changes merged into `main` deploy automatically. Use `npm test && npm run build` as the build command and `npx wrangler deploy` as the production deploy command. PR previews use `npx wrangler preview`, with isolated room storage and voice disabled until preview credentials are configured.
@@ -51,6 +53,7 @@ npx wrangler secret put LIVEKIT_API_SECRET
 ## Implemented
 
 - Two-player private rooms with eight-character invitation codes.
+- A prominent, selectable invite code with separate copy-code and copy-link controls.
 - Configurable integer ranges from 0 to 1,000,000.
 - Server-held secret numbers, alternating guesses, and exact-hit wins.
 - Server-generated higher/lower hints, guess history, and rematches.
