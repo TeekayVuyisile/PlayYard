@@ -15,6 +15,8 @@ Approved direction: mature cinematic anime, architectural framing, graphite surf
 - Guess My Number: observatory, smoked-glass artifact, restrained violet details.
 - Stop the Clock: urban night circuit, brushed-metal timing instrument.
 - Same Answer: listening cafe, dark walnut and muted plum stationery.
+- Guess the Imposter: secret-society table, using the existing cafe scene with a shared dark drawing surface and player stroke colours.
+- Chess: strategy table, using the observatory scene with a slate/ivory board and lime legal-move markers.
 
 ## Motion and access
 
@@ -26,4 +28,4 @@ Use only the original scene images in public/art, never rasterized mockup UI. Ma
 
 ## Content
 
-No invented activity, reviews, scores, rankings, currency or profile capabilities. Only private two-player rooms are represented. Real HTML and React controls render all game state, text, invites and chat.
+No invented activity, reviews, scores, rankings, currency or profile capabilities. Private rooms support 3–8 players for Imposter and two players for other games. Real HTML and React controls render all game state, text, invites and chat.

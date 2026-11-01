@@ -2292,3 +2292,349 @@ form label {
 .answer-form {
   margin-top: 20px;
 }
+/* Multiplayer additions share the cinematic lounge tokens. */
+.party-game {
+  padding: clamp(18px, 3vw, 32px);
+  min-width: 0;
+}
+.game-kicker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent, #c8f36b);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 24px;
+}
+.party-game h2 {
+  font-size: clamp(23px, 3vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  margin: 12px 0;
+}
+.party-game p {
+  line-height: 1.65;
+}
+.party-intro {
+  max-width: 620px;
+}
+.party-intro > .primary {
+  margin-top: 16px;
+}
+.match-settings {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+.match-settings span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #354154;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.party-players {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.party-players .player {
+  min-width: 0;
+  border-bottom: 1px solid #293444;
+}
+.party-players .player strong {
+  overflow-wrap: anywhere;
+}
+.secret-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  background: #1b2534;
+  border: 1px solid #48576b;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.secret-card strong,
+.secret-card small {
+  display: block;
+}
+.secret-card strong {
+  font-size: 22px;
+  padding: 8px 0;
+}
+.secret-card small {
+  color: #b4c0d1;
+  line-height: 1.5;
+}
+.secret-card button {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+}
+.party-phase {
+  margin: 22px 0;
+}
+.party-phase form {
+  display: grid;
+  gap: 12px;
+  max-width: 440px;
+}
+.party-phase select {
+  width: 100%;
+}
+.clue-form {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0;
+}
+.clue-form > div {
+  display: flex;
+  gap: 10px;
+}
+.clue-form input {
+  min-width: 0;
+  flex: 1;
+}
+.clue-form button {
+  white-space: nowrap;
+}
+.skip-turn {
+  margin: 0 0 16px;
+  font-size: 12px;
+}
+.shared-canvas {
+  display: block;
+  width: 100%;
+  max-width: 580px;
+  height: auto;
+  aspect-ratio: 1;
+  border: 1px solid #4d5c70;
+  border-radius: 6px;
+}
+.shared-canvas.can-draw {
+  touch-action: none;
+  cursor: crosshair;
+  border-color: #c8f36b;
+}
+.drawing-area > p {
+  font-size: 13px;
+  max-width: 580px;
+}
+.drawing-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  font-size: 12px;
+  margin: 16px 0;
+}
+.drawing-legend span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.drawing-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.clue-history {
+  margin-top: 28px;
+  border-top: 1px solid #354154;
+  padding-top: 20px;
+}
+.clue-history ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.clue-history li {
+  padding: 12px 0;
+  border-bottom: 1px solid #293444;
+  overflow-wrap: anywhere;
+}
+.clue-history li p {
+  margin: 8px 0 0;
+}
+.vote-confirmed {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #c8f36b;
+}
+.vote-results {
+  list-style: none;
+  padding: 0;
+}
+.vote-results li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #354154;
+  font-size: 14px;
+}
+.vote-results span {
+  color: #b4c0d1;
+}
+.chess-status {
+  margin-bottom: 18px;
+}
+.chess-status p {
+  color: #b4c0d1;
+  margin: 0;
+}
+.chess-board {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  max-width: 580px;
+  aspect-ratio: 1;
+  border: 3px solid #506079;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.chess-square {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 0;
+  padding: 2px;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+.chess-square.light {
+  background: #adb9c3;
+  color: #1b2938;
+}
+.chess-square.dark {
+  background: #455c6e;
+  color: #f5f1df;
+}
+.chess-square.last-move {
+  box-shadow: inset 0 0 0 4px #d9e78b99;
+}
+.chess-square.selected {
+  background: #b4d16c;
+  box-shadow: inset 0 0 0 3px #edfbb9;
+}
+.chess-square:focus-visible {
+  z-index: 1;
+  outline: 3px solid #f4f9c3;
+  outline-offset: -4px;
+}
+.chess-square:hover {
+  transform: none;
+  filter: brightness(1.12);
+}
+.chess-piece {
+  width: 88%;
+  height: 88%;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 1px #0005);
+}
+.square-coordinate {
+  position: absolute;
+  left: 3px;
+  bottom: 1px;
+  font: 9px monospace;
+  line-height: 1;
+  pointer-events: none;
+}
+.legal-square {
+  position: absolute;
+  width: 25%;
+  height: 25%;
+  border-radius: 50%;
+  background: #142c2e99;
+  border: 2px solid #ddfca0;
+  pointer-events: none;
+}
+.chess-help {
+  font-size: 13px;
+}
+.chess-actions,
+.promotion-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 20px 0;
+}
+.chess-actions p,
+.promotion-choice p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.chess-history {
+  margin-top: 24px;
+  border-top: 1px solid #354154;
+  padding-top: 16px;
+}
+.chess-history summary {
+  cursor: pointer;
+  min-height: 44px;
+}
+.chess-history ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  padding: 0;
+  font: 14px monospace;
+}
+.game-imposter .game-visual img {
+  filter: hue-rotate(28deg) saturate(0.8);
+}
+.game-chess .game-visual img {
+  filter: saturate(0.55);
+}
+@media (max-width: 650px) {
+  .party-game {
+    padding: 18px 14px;
+  }
+  .party-players .player {
+    padding: 12px;
+    gap: 9px;
+  }
+  .party-players .avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .party-players .player strong {
+    font-size: 13px;
+  }
+  .secret-card {
+    padding: 14px;
+  }
+  .clue-form > div {
+    flex-direction: column;
+  }
+  .clue-history ol {
+    grid-template-columns: 1fr;
+  }
+  .vote-results li {
+    flex-direction: column;
+    gap: 3px;
+  }
+  .chess-square {
+    padding: 0;
+  }
+  .square-coordinate {
+    font-size: 7px;
+  }
+  .chess-actions button,
+  .promotion-choice button {
+    min-height: 44px;
+  }
+}
