@@ -21,6 +21,9 @@ Approved direction: mature cinematic anime, architectural framing, graphite surf
 - Prism Code: prism vault in the observatory, faceted SVG crystals in four colours with B/G/R/Y labels; choose two positions to swap.
 - Avoid the Poison: midnight snack table in the cafe, crescent-shaped SVG tokens, numbered trays, explicit safe/poison labels and three-heart life counters.
 
+- Memory Duo: memory archive in the observatory; numbered, letter-labelled crystals, a bounded viewing progress bar and private recall controls.
+- Fuse Rush: night circuit; a dimensional metal bomb instrument, a tabular countdown, large recipient buttons and explicit life/elimination labels. No flashing or auto-playing audio.
+
 ## Motion and access
 
 CSS geometry supplies a rotating 3D artifact, dimensional timing prop and floating notes. Hover tilt, scene arrival and answer reveals are restrained. There is no WebGL dependency. Respect prefers-reduced-motion and the persisted manual motion toggle; never animate the gameplay clock for decoration. Keep interactive content opaque enough to read. Inputs stay at least 16px on phones. Primary controls and the motion toggle have at least 44px touch targets.
@@ -31,4 +34,4 @@ Use only the original scene images in public/art, never rasterized mockup UI. Ma
 
 ## Content
 
-No invented activity, reviews, scores, rankings, currency or profile capabilities. Private rooms support 3–8 players for Imposter and two players for other games. Real HTML and React controls render all game state, text, invites and chat.
+No invented activity, reviews, scores, rankings, currency or profile capabilities. Private rooms support 3–8 players for Imposter, 2–8 for Fuse Rush and two players for other games. Real HTML and React controls render all game state, text, invites and chat.

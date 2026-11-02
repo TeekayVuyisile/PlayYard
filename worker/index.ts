@@ -1,3 +1,4 @@
+import { createMemory, createFuse, nextTimedDeadline, tickTimedGames } from './timed-games';
 import { createPrism, createPoison } from './hidden-duels';
 import { createImposter } from './imposter';
 import { createChess } from './chess';
@@ -43,25 +44,42 @@ export class GameRoom extends DurableObject<Env> {
   lastAction = new Map<string,number>();
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx,env);
-    ctx.blockConcurrencyWhile(async()=>{ this.state = await ctx.storage.get<State>('room'); });
+    ctx.blockConcurrencyWhile(async()=>{ this.state = await ctx.storage.get<State>('room'); if (this.state && !this.state.expiresAt) this.state.expiresAt = await ctx.storage.getAlarm() ?? Date.now()+24*60*60*1000; });
   }
-  async save() {
+  async save(touch = true) {
+    if (touch) this.state!.expiresAt = Date.now()+24*60*60*1000;
     await this.ctx.storage.put('room',this.state);
-    await this.ctx.storage.setAlarm(Date.now()+24*60*60*1000);
+    await this.schedule();
     for (const ws of this.ctx.getWebSockets()) {
       try { ws.send(JSON.stringify({type:'state',data:view(this.state!,ws.deserializeAttachment().id)})); } catch { /* Closed sockets are removed by runtime. */ }
     }
   }
+  async schedule() {
+    if (!this.state) return;
+    const deadline = nextTimedDeadline(this.state);
+    await this.ctx.storage.setAlarm(Math.max(Date.now()+1,Math.min(this.state.expiresAt!,deadline??Infinity)));
+  }
+  async expire() {
+    this.ctx.getWebSockets().forEach(ws=>ws.close(1000,'Room expired'));
+    await this.ctx.storage.deleteAll(); this.state=undefined;
+  }
+  async advance() {
+    if (!this.state) return;
+    const now = Date.now();
+    if (this.state.expiresAt! <= now) { await this.expire(); return; }
+    if (tickTimedGames(this.state,now)) await this.save(false);
+  }
   async fetch(req: Request) {
     const url=new URL(req.url), id=req.headers.get('X-Player')!;
     try {
+      await this.advance();
       if (url.pathname==='/create' || url.pathname==='/join') {
         if (req.method!=='POST') return json({error:'POST required.'},405);
         const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown;mode?:unknown;rounds?:unknown};
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
-          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer' && input.game !== 'imposter' && input.game !== 'chess' && input.game !== 'prism' && input.game !== 'poison') throw new Error('Choose an available game.');
+          if (input.game !== undefined && input.game !== 'number' && input.game !== 'timer' && input.game !== 'answer' && input.game !== 'imposter' && input.game !== 'chess' && input.game !== 'prism' && input.game !== 'poison' && input.game !== 'memory' && input.game !== 'fuse') throw new Error('Choose an available game.');
           if (input.game === 'timer') {
             if (!integer(input.targetMs,1000,30000)) throw new Error('Choose a target between 1 and 30 seconds.');
             if (typeof input.hidden !== 'boolean') throw new Error('Choose whether the timer is hidden.');
@@ -79,13 +97,16 @@ export class GameRoom extends DurableObject<Env> {
             ...(game==='imposter'?{imposter:createImposter(input.mode as 'words'|'drawing',input.rounds as number)}:{}),
             ...(game==='chess'?{chess:createChess(id)}:{}),
             ...(game==='prism'?{prism:createPrism()}:{}),
-            ...(game==='poison'?{poison:createPoison()}:{})
+            ...(game==='poison'?{poison:createPoison()}:{}),
+            ...(game==='memory'?{memory:createMemory()}:{}),
+            ...(game==='fuse'?{fuse:createFuse()}:{})
           };
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
         if (!this.state.players.some(p=>p.id===id)) {
           if (this.state.game==='imposter' && this.state.imposter!.phase!=='lobby' && this.state.imposter!.phase!=='finished') throw new Error('This match has started. Join after the reveal.');
-          const capacity=this.state.game==='imposter'?8:2;
+          if (this.state.game==='fuse' && this.state.fuse!.phase!=='lobby' && this.state.fuse!.phase!=='finished') throw new Error('This match has started. Join after the winner is decided.');
+          const capacity=(this.state.game==='imposter'||this.state.game==='fuse')?8:2;
           if (this.state.players.length>=capacity) throw new Error(capacity===2?'This two-player room is full.':'This eight-player room is full.');
           this.state.players.push({id,name:input.name.trim()});
         }
@@ -112,15 +133,21 @@ export class GameRoom extends DurableObject<Env> {
   }
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
     try {
+      await this.advance();
+      if (!this.state) return;
       if(typeof message!=='string'||message.length>8192) throw new Error('Message too large.');
       const {id}=ws.deserializeAttachment(); const now=Date.now();
       const action=JSON.parse(message);
       if (!action || typeof action!=='object') throw new Error('Invalid action.');
-      const actionKey = `${id}:${['timer-start','timer-stop','timer-reset'].includes(action.type) ? action.type : 'other'}`;
+      const actionKey = `${id}:${['timer-start','timer-stop','timer-reset','fuse-pass'].includes(action.type) ? action.type : 'other'}`;
       if (now-(this.lastAction.get(actionKey)||0)<250) throw new Error('Please slow down.');
       this.lastAction.set(actionKey,now);
-      act(this.state!,id,action); await this.save();
+      act(this.state!,id,action,now); await this.save();
     } catch(e) { ws.send(JSON.stringify({type:'error',error:e instanceof Error?e.message:'Invalid action.'})); }
   }
-  async alarm() { this.ctx.getWebSockets().forEach(ws=>ws.close(1000,'Room expired')); await this.ctx.storage.deleteAll(); this.state=undefined; }
+  async alarm() {
+    await this.advance();
+    // Repeated or early alarm delivery cannot apply a second life loss.
+    if (this.state) await this.schedule();
+  }
 }

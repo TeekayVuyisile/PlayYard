@@ -52,7 +52,7 @@ npx wrangler secret put LIVEKIT_API_SECRET
 
 ## Implemented
 
-- Private rooms with eight-character invitation codes: 3–8 players for Imposter, two players for other games.
+- Private rooms with eight-character invitation codes: 3–8 players for Imposter, 2–8 for Fuse Rush, two players for other games.
 - A prominent, selectable invite code with separate copy-code and copy-link controls.
 - Configurable integer ranges from 0 to 1,000,000.
 - Server-held secret numbers, alternating guesses, and exact-hit wins.
@@ -65,6 +65,8 @@ npx wrangler secret put LIVEKIT_API_SECRET
 - Chess: server-validated moves, castling, en passant, promotion/underpromotion, checkmate, automatic repetition/fifty-move/insufficient-material draws, draw offers, resignations and mutually confirmed rematches with swapped colours. No clock or computer opponent.
 - Prism Code: each player seals a four-colour permutation for the other to solve. Alternate guesses receive only a correct-position count; the first exact match wins. Colours also have letter labels, and crystals swap using buttons that work with touch or keyboard.
 - Avoid the Poison: two separate trays of ten moon-shaped snack tokens. Each player privately traps three on the other player’s tray, then takes turns picking from their own. The third poison loses the match. Remaining traps reveal only at the end.
+- Memory Duo: both players study a shared pattern for three seconds, then answer privately. Five rounds grow from four to eight crystals, colours may repeat, each correct position earns one point, and matching final totals draw. Both confirm readiness and rematches.
+- Fuse Rush: 2–8 players, three lives each, random 10–20 second fuses, chosen recipients and a 300 ms minimum hold. The holder at expiry loses a life; eliminated players spectate, and the last survivor wins. New fuses start after four seconds.
 - Room text chat, reconnecting WebSockets, and optional LiveKit voice with mute.
 - Room state survives Worker hibernation; inactive rooms expire after 24 hours.
 
@@ -95,3 +97,13 @@ In Prism Code, all four colours appear exactly once. Select two crystal position
 In Avoid the Poison, setup selections mark the opponent’s tray, while gameplay selections always pick from your own tray. Slots are independent across the two trays. The server validates turn order, stale turn numbers, picked slots, poison hits and the three-life loss condition. Safe picks do not restore or consume lives.
 
 These additions use the existing room storage, chat and optional voice. They add no packages, APIs, environment variables or database migrations. The existing GitHub multiplayer command includes both new games automatically.
+
+## Timed games
+
+Memory Duo starts when both players confirm readiness. A 1.5-second countdown precedes the shared three-second viewing window. The server sends the pattern when the window opens, then removes it from recall snapshots. Answers are private until both are submitted; correct-position points accumulate to a maximum of 30 over five rounds. Both players confirm the next round and a rematch. Reloading during study does not restart or extend the viewing window; rejoin promptly to see the remaining time. Submitted answers survive reconnects, while incomplete recall drafts stay on the current page.
+
+In Fuse Rush, the host starts the match after 2–8 players join. A random survivor receives each new bomb. The displayed fuse lasts 10–20 seconds, and passes never reset its deadline. The current holder can pass to any other survivor after holding for 300 ms. Deadline and ownership checks run on the server: a pass received at or after expiry is rejected, even if the alarm fires late. Network latency can affect very close passes; the browser countdown is an estimate of server time. No client-reported timer or pass timestamp determines a loss.
+
+An explosion removes one life from the holder, with a four-second break before the next fuse starts automatically. Zero-life players stay as spectators, and disconnected players remain eligible to receive the bomb until eliminated. Matches continue through disconnections and end with one survivor, with at most 23 explosions for eight players. New players join only before a match starts or after it finishes. The original host can restart the finished match, including if they were eliminated.
+
+Room storage persists timing deadlines. One Durable Object alarm schedules the earliest game event or the existing 24-hour inactivity expiry. Repeated alarm delivery cannot deduct another life for an already resolved fuse; chat and passes do not replace the deadline with the room cleanup time. Browser intervals only draw countdowns; they do not run the game. No new bindings, services, secrets or packages are required.

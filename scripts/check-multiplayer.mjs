@@ -96,3 +96,5 @@ try {
 await import('./check-party-games.mjs');
 
 await import('./check-hidden-duels.mjs');
+
+await import('./check-timed-games.mjs');
