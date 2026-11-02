@@ -25,7 +25,7 @@ type Props<T> = {
 };
 const COLOURS: PrismColour[] = ["blue", "green", "red", "yellow"];
 const LABELS = { blue: "B", green: "G", red: "R", yellow: "Y" };
-function Crystal({
+export function Crystal({
   colour,
   small = false,
 }: {
