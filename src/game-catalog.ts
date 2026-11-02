@@ -1,0 +1,77 @@
+export const GAMES = [
+  {
+    id: "number",
+    title: "Guess My Number",
+    scene: "observatory",
+    description: "Higher or lower? Find the secret number.",
+    tag: "Logic & instinct",
+    players: "2 players",
+  },
+  {
+    id: "timer",
+    title: "Stop the Clock",
+    scene: "circuit",
+    description: "Hit the time. Closest wins.",
+    tag: "Precision & nerve",
+    players: "2 players",
+  },
+  {
+    id: "answer",
+    title: "Same Answer",
+    scene: "cafe",
+    description: "Different minds. Same answer.",
+    tag: "Your shared wavelength",
+    players: "2 players",
+  },
+  {
+    id: "imposter",
+    title: "Guess the Imposter",
+    scene: "cafe",
+    description: "Trade clues or draw. Find the one bluffing.",
+    tag: "Secrets & suspicion",
+    players: "3–8 players",
+  },
+  {
+    id: "chess",
+    title: "Chess",
+    scene: "observatory",
+    description: "Take your seat. Think a few moves ahead.",
+    tag: "Tactics & strategy",
+    players: "2 players",
+  },
+  {
+    id: "prism",
+    title: "Prism Code",
+    scene: "observatory",
+    description: "Four crystals. One hidden order. Crack the code.",
+    tag: "Colour & deduction",
+    players: "2 players",
+  },
+  {
+    id: "poison",
+    title: "Avoid the Poison",
+    scene: "cafe",
+    description: "Ten bites. Three traps. Trust your instinct.",
+    tag: "Bluffs & lucky bites",
+    players: "2 players",
+  },
+  {
+    id: "memory",
+    title: "Memory Duo",
+    scene: "observatory",
+    description: "Three seconds to study. Five rounds to prove it.",
+    tag: "Focus & recall",
+    players: "2 players",
+  },
+  {
+    id: "fuse",
+    title: "Fuse Rush",
+    scene: "circuit",
+    description: "Pass the bomb. Keep your lives. Beat the fuse.",
+    tag: "Reaction & nerve",
+    players: "2–8 players",
+  },
+] as const;
+export type GameId = (typeof GAMES)[number]["id"];
+export const gameTitle = (id: GameId) =>
+  GAMES.find((game) => game.id === id)!.title;

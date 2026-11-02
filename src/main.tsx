@@ -37,6 +37,9 @@ import {
   type MemorySnapshot,
   type FuseSnapshot,
 } from "./TimedGames";
+import { ClockPractice } from "./ClockPractice";
+import { GameCards } from "./GameCards";
+import { gameTitle, type GameId } from "./game-catalog";
 import { SceneProp } from "./SceneProp";
 import "./style.css";
 type Player = { id: string; name: string; ready: boolean; secret?: number };
@@ -52,16 +55,7 @@ type Snapshot = {
   winner?: string;
   guesses: { player: string; value: number; result: string }[];
   messages: { name: string; text: string }[];
-  game?:
-    | "number"
-    | "timer"
-    | "answer"
-    | "imposter"
-    | "chess"
-    | "prism"
-    | "poison"
-    | "memory"
-    | "fuse";
+  game?: GameId;
   imposter?: ImposterSnapshot;
   chess?: ChessSnapshot;
   prism?: PrismSnapshot;
@@ -98,21 +92,17 @@ function App() {
   const [modal, setModal] = useState<"create" | "join" | null>(
     initial ? "join" : null,
   );
+  const [practice, setPractice] = useState(
+    () =>
+      !initial &&
+      new URLSearchParams(location.search).get("practice") === "timer",
+  );
+  const [joinGame, setJoinGame] = useState<GameId | null>(null);
   const [name, setName] = useState(""),
     [code, setCode] = useState(initial),
     [min, setMin] = useState("0"),
     [max, setMax] = useState("500");
-  const [game, setGame] = useState<
-      | "number"
-      | "timer"
-      | "answer"
-      | "imposter"
-      | "chess"
-      | "prism"
-      | "poison"
-      | "memory"
-      | "fuse"
-    >("number"),
+  const [game, setGame] = useState<GameId>("number"),
     [target, setTarget] = useState("10"),
     [hidden, setHidden] = useState(false);
   const [imposterMode, setImposterMode] = useState<"words" | "drawing">(
@@ -183,6 +173,30 @@ function App() {
     socket.current.send(JSON.stringify(data));
     return true;
   }
+  function openGame(selected: GameId, mode: "create" | "join") {
+    setGame(selected);
+    setJoinGame(mode === "join" ? selected : null);
+    setCode("");
+    setModal(mode);
+    setError("");
+  }
+  function openPractice() {
+    setPractice(true);
+    setModal(null);
+    setError("");
+    history.replaceState({}, "", "?practice=timer");
+    window.scrollTo(0, 0);
+  }
+  function chooseGame() {
+    document.getElementById("games-title")?.focus({ preventScroll: true });
+    document
+      .getElementById("games")
+      ?.scrollIntoView({
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+      });
+  }
   async function enter(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -197,6 +211,7 @@ function App() {
           min: Number(min),
           max: Number(max),
           game,
+          expectedGame: modal === "join" ? (joinGame ?? undefined) : undefined,
           targetMs: Math.round(Number(target) * 1000),
           hidden,
           mode: imposterMode,
@@ -276,7 +291,11 @@ function App() {
       );
     }
   }
-  const theme = roomCode ? room?.game || "number" : "lounge";
+  const theme = roomCode
+    ? room?.game || "number"
+    : practice
+      ? "timer"
+      : "lounge";
   const scenery =
     theme === "number" ||
     theme === "chess" ||
@@ -310,7 +329,7 @@ function App() {
           PLAYYARD
         </a>
         <nav aria-label="Main navigation">
-          {roomCode ? (
+          {roomCode || practice ? (
             <a className="back-link" href="/">
               <ArrowLeft size={15} /> Back to lounge
             </a>
@@ -343,7 +362,12 @@ function App() {
         </div>
       </header>
       <main id="main-content" inert={Boolean(modal)}>
-        {!roomCode ? (
+        {!roomCode && practice ? (
+          <ClockPractice
+            active={!modal}
+            onCreateRoom={() => openGame("timer", "create")}
+          />
+        ) : !roomCode ? (
           <>
             <section className="hero">
               <div className="hero-copy">
@@ -357,18 +381,14 @@ function App() {
                 </h1>
                 <p>Short games. Real friends. Wherever you are.</p>
                 <div className="actions">
-                  <button
-                    className="primary"
-                    onClick={() => {
-                      setModal("create");
-                      setError("");
-                    }}
-                  >
-                    Create a room <ArrowRight size={18} />
+                  <button className="primary" onClick={chooseGame}>
+                    Choose a game <ArrowRight size={18} />
                   </button>
                   <button
                     className="secondary"
                     onClick={() => {
+                      setJoinGame(null);
+                      setCode("");
                       setModal("join");
                       setError("");
                     }}
@@ -395,124 +415,16 @@ function App() {
             </section>
             <section id="games" className="games" aria-labelledby="games-title">
               <div className="section-heading">
-                <h2 id="games-title">Choose your game</h2>
+                <h2 id="games-title" tabIndex={-1}>
+                  Choose your game
+                </h2>
                 <span className="muted">Find your next friendly rivalry.</span>
               </div>
-              <div className="game-grid">
-                {[
-                  {
-                    id: "number" as const,
-                    title: "Guess My Number",
-                    scene: "observatory",
-                    description: "Higher or lower? Find the secret number.",
-                    tag: "Logic & instinct",
-                  },
-                  {
-                    id: "timer" as const,
-                    title: "Stop the Clock",
-                    scene: "circuit",
-                    description: "Hit the time. Closest wins.",
-                    tag: "Precision & nerve",
-                  },
-                  {
-                    id: "answer" as const,
-                    title: "Same Answer",
-                    scene: "cafe",
-                    description: "Different minds. Same answer.",
-                    tag: "Your shared wavelength",
-                  },
-                  {
-                    id: "imposter" as const,
-                    title: "Guess the Imposter",
-                    scene: "cafe",
-                    description: "Trade clues or draw. Find the one bluffing.",
-                    tag: "Secrets & suspicion",
-                  },
-                  {
-                    id: "chess" as const,
-                    title: "Chess",
-                    scene: "observatory",
-                    description: "Take your seat. Think a few moves ahead.",
-                    tag: "Tactics & strategy",
-                  },
-                  {
-                    id: "prism" as const,
-                    title: "Prism Code",
-                    scene: "observatory",
-                    description:
-                      "Four crystals. One hidden order. Crack the code.",
-                    tag: "Colour & deduction",
-                  },
-                  {
-                    id: "poison" as const,
-                    title: "Avoid the Poison",
-                    scene: "cafe",
-                    description: "Ten bites. Three traps. Trust your instinct.",
-                    tag: "Bluffs & lucky bites",
-                  },
-                  {
-                    id: "memory" as const,
-                    title: "Memory Duo",
-                    scene: "observatory",
-                    description:
-                      "Three seconds to study. Five rounds to prove it.",
-                    tag: "Focus & recall",
-                  },
-                  {
-                    id: "fuse" as const,
-                    title: "Fuse Rush",
-                    scene: "circuit",
-                    description:
-                      "Pass the bomb. Keep your lives. Beat the fuse.",
-                    tag: "Reaction & nerve",
-                  },
-                ].map((item, index) => (
-                  <button
-                    key={item.id}
-                    className={`game-card game-${item.id}`}
-                    onClick={() => {
-                      setGame(item.id);
-                      setModal("create");
-                      setError("");
-                    }}
-                  >
-                    <div className="game-visual">
-                      <img
-                        src={`/art/${item.scene}-small.webp`}
-                        alt=""
-                        loading="lazy"
-                        width="800"
-                        height="450"
-                      />
-                      <div className="game-art-shade" />
-                      <span className="game-index">0{index + 1}</span>
-                      <span className="game-world">{item.tag}</span>
-                    </div>
-                    <div className="game-description">
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.description}</p>
-                      </div>
-                      <span className="play-label">
-                        Play <ArrowRight size={17} />
-                      </span>
-                    </div>
-                    <div className="game-tags">
-                      <span>
-                        <Users size={12} />{" "}
-                        {item.id === "fuse"
-                          ? "2–8 players"
-                          : item.id === "imposter"
-                            ? "3–8 players"
-                            : "2 players"}
-                      </span>
-                      <span>
-                        {item.id === "answer" ? "Cooperative" : "Competitive"}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <GameCards
+                onCreate={(selected) => openGame(selected, "create")}
+                onJoin={(selected) => openGame(selected, "join")}
+                onPractice={openPractice}
+              />
             </section>
             <section className="how" id="how-to-play">
               <span className="eyebrow">LESS SETUP. MORE PLAY.</span>
@@ -1104,31 +1016,17 @@ function App() {
             </div>
             <div className="eyebrow">
               {modal === "join"
-                ? "PRIVATE GAME ROOM"
-                : game === "memory"
-                  ? "MEMORY DUO"
-                  : game === "fuse"
-                    ? "FUSE RUSH"
-                    : game === "prism"
-                      ? "PRISM CODE"
-                      : game === "poison"
-                        ? "AVOID THE POISON"
-                        : game === "imposter"
-                          ? "GUESS THE IMPOSTER"
-                          : game === "chess"
-                            ? "CHESS"
-                            : game === "answer"
-                              ? "SAME ANSWER"
-                              : game === "timer"
-                                ? "STOP THE CLOCK"
-                                : "GUESS MY NUMBER"}
+                ? joinGame
+                  ? `JOIN ${gameTitle(joinGame).toUpperCase()}`
+                  : "PRIVATE GAME ROOM"
+                : gameTitle(game).toUpperCase()}
             </div>
             <h2 id="modal-title">
               {modal === "create"
-                ? game === "answer"
-                  ? "Find your shared wavelength."
-                  : "Start a friendly rivalry."
-                : "Your seat is waiting."}
+                ? `Create ${gameTitle(game)} room`
+                : joinGame
+                  ? `Join ${gameTitle(joinGame)}`
+                  : "Your seat is waiting."}
             </h2>
             <p>
               {modal === "create"
@@ -1137,7 +1035,9 @@ function App() {
                   : game === "imposter"
                     ? "Make a private room and invite 2–7 friends."
                     : "Make a private room and invite one friend."
-                : "Enter your nickname and the eight-character room code."}
+                : joinGame
+                  ? `Enter an eight-character ${gameTitle(joinGame)} room code and your nickname.`
+                  : "Enter your nickname and the eight-character room code."}
             </p>
             <form onSubmit={enter}>
               <label htmlFor="name">Your nickname</label>
@@ -1153,33 +1053,14 @@ function App() {
               />
               {modal === "create" ? (
                 <>
-                  <label htmlFor="game">Choose a game</label>
-                  <select
-                    id="game"
-                    value={game}
-                    onChange={(e) =>
-                      setGame(
-                        e.target.value as
-                          | "number"
-                          | "timer"
-                          | "answer"
-                          | "imposter"
-                          | "chess"
-                          | "prism"
-                          | "poison",
-                      )
-                    }
-                  >
-                    <option value="number">Guess My Number</option>
-                    <option value="timer">Stop the Clock</option>
-                    <option value="answer">Same Answer</option>
-                    <option value="imposter">Guess the Imposter</option>
-                    <option value="chess">Chess</option>
-                    <option value="prism">Prism Code</option>
-                    <option value="poison">Avoid the Poison</option>
-                    <option value="memory">Memory Duo</option>
-                    <option value="fuse">Fuse Rush</option>
-                  </select>
+                  <div className="selected-game">
+                    <span className="eyebrow">YOUR GAME</span>
+                    <strong>{gameTitle(game)}</strong>
+                    <small>
+                      To choose a different game, close this form and pick its
+                      card.
+                    </small>
+                  </div>
                   {game === "memory" || game === "fuse" ? (
                     <div className="answer-settings">
                       <p>

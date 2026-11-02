@@ -75,7 +75,7 @@ export class GameRoom extends DurableObject<Env> {
       await this.advance();
       if (url.pathname==='/create' || url.pathname==='/join') {
         if (req.method!=='POST') return json({error:'POST required.'},405);
-        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown;mode?:unknown;rounds?:unknown};
+        const input = await req.json() as {name?:unknown;min?:unknown;max?:unknown;game?:unknown;targetMs?:unknown;hidden?:unknown;mode?:unknown;rounds?:unknown;expectedGame?:unknown};
         if (typeof input.name!=='string' || !input.name.trim() || input.name.trim().length>20) throw new Error('Choose a nickname of 1–20 characters.');
         if (url.pathname==='/create') {
           if (this.state) throw new Error('Room already exists. Try again.');
@@ -103,6 +103,7 @@ export class GameRoom extends DurableObject<Env> {
           };
         }
         if (!this.state) return json({error:'This room does not exist or has expired.'},404);
+        if (url.pathname==='/join' && input.expectedGame!==undefined && input.expectedGame!==(this.state.game||'number')) throw new Error('This room is playing a different game. Choose its game card, or use Join with a code from the lounge.');
         if (!this.state.players.some(p=>p.id===id)) {
           if (this.state.game==='imposter' && this.state.imposter!.phase!=='lobby' && this.state.imposter!.phase!=='finished') throw new Error('This match has started. Join after the reveal.');
           if (this.state.game==='fuse' && this.state.fuse!.phase!=='lobby' && this.state.fuse!.phase!=='finished') throw new Error('This match has started. Join after the winner is decided.');
