@@ -35,3 +35,9 @@ Use only the original scene images in public/art, never rasterized mockup UI. Ma
 ## Content
 
 No invented activity, reviews, scores, rankings, currency or profile capabilities. Private rooms support 3–8 players for Imposter, 2–8 for Fuse Rush and two players for other games. Real HTML and React controls render all game state, text, invites and chat.
+
+## Catalogue and practice refinement
+
+Each card layers an original vector game object over the cinematic scene: number tumblers, a stopwatch, matching speech panels, secret identity cards, chess pieces, four prisms, a crescent-snack tray, memory tiles and a metal fuse bomb. These are decorative SVG illustrations rather than interface screenshots or new remote assets. Keep Create room and Join room as separate 44px controls inside an article, and never nest buttons. Stop the Clock also offers Practice solo.
+
+Room forms confirm the chosen game without a selector. Practice uses the circuit setting, a large local clock, labelled settings and recent-attempt feedback. Space controls only the active clock and must preserve text-entry and native form behaviour. Same Answer gives the last reveal its own deliberate continuation to the final score.
