@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bot, RotateCcw } from "lucide-react";
+import { GameRules } from "./GameRules";
 import { view, type State } from "../worker/game";
 import { ChessGame } from "./ChessGame";
 import { PrismCode } from "./HiddenDuels";
@@ -158,6 +159,7 @@ export function SoloPlay({ game }: { game: SoloGame }) {
             : "Your own table. Your own pace. Choose your challenge."}
         </p>
       </header>
+      <GameRules game={game} mode="computer" />
       {!state ? (
         <form
           className="solo-settings board"

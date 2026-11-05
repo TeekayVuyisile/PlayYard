@@ -45,3 +45,7 @@ Room forms confirm the chosen game without a selector. Practice uses the circuit
 ## Computer tables
 
 Chess, Guess My Number and Prism Code add a Bot icon and Play with computer action below their card actions. Use the existing scene and lime action palette. Solo settings explain difficulty and session lifetime, then give way to a centred game panel and a compact thinking/settings toolbar. Keep chess content at a readable maximum width with equal side space at desktop widths. On phones use the available panel width for the chess board rather than adding a second set of outer gutters. Do not imply rated chess strength or saved solo progress.
+
+## Game instructions
+
+How to play opens a centred popup tutorial from cards, rooms, computer games and clock practice. Show one visual demonstration and a short caption per step, with replay and clear navigation. Put complete text rules in an All rules view. Use real game pieces and labelled colours, restrained looping demonstrations, 44px controls and a scrollable middle with fixed header/footer. Native dialog supplies focus containment and blocks the background. Escape closes and returns focus to the launcher. Respect reduced motion and manual pause; show static demonstrations when motion is off. Tutorials do not pause gameplay clocks.

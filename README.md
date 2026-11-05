@@ -131,3 +131,9 @@ Chess, Guess My Number and Prism Code have a **Play with computer** action on th
 Number and Prism strategies receive only the computer player's filtered view. Chess receives only the public move history. This prevents strategy code from using hidden choices, although local solo play is not an anti-cheat boundary against someone inspecting their own browser. Multiplayer rules and room storage are unchanged.
 
 Desktop chess content, including the board, status and actions, is centred within its panel. Prism content also has a centred readable width. The solo module loads only when a solo game is opened.
+
+## How-to-play guides
+
+Every game card opens a How to play popup. The same popup is available in multiplayer rooms, computer games and stopwatch practice. Show me how presents five illustrated steps with Back, Next, direct step selection and replay. All rules retains complete rules, including both Imposter modes and special chess moves.
+
+Tutorials use a native modal dialog rendered outside the app layout, with background interaction blocked, contained keyboard focus, Escape closing and focus return. Game-specific illustrations reuse the real crystals and chess pieces; CSS animations demonstrate counting, remembering, drawing and passing. Reduced-motion and manual pause preferences show static examples. Opening a guide does not pause running games. Rule text is centralised in src/game-rules.ts; illustrations are in src/RuleDemo.tsx.

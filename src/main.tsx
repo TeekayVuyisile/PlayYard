@@ -40,6 +40,7 @@ import {
 import { ClockPractice } from "./ClockPractice";
 import type { SoloGame } from "./solo-engine";
 import { GameCards } from "./GameCards";
+import { GameRules } from "./GameRules";
 import { gameTitle, type GameId } from "./game-catalog";
 import { SceneProp } from "./SceneProp";
 import "./style.css";
@@ -581,6 +582,7 @@ function App() {
                 {notice}
               </span>
             </section>
+            {room && <GameRules game={room.game || "number"} />}
             <div className="room-layout">
               <div className="board">
                 <div className="board-header">

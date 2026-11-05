@@ -98,7 +98,7 @@ describe("Game entry and reveal regressions", () => {
       expect(html).toContain(`aria-label="Join ${g.title} room"`);
       expect(html).toContain(`cover-${g.id}`);
     }
-    expect((html.match(/<button /g) || []).length).toBe(19);
+    expect((html.match(/<button /g) || []).length).toBe(28);
     expect(html).not.toContain("<select");
     expect(html).toContain("Practice solo");
     expect(html).not.toMatch(/<button[^>]*>(?:(?!<\/button>)[\s\S])*<button/);
