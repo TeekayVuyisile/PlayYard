@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Crown, Flag, Handshake } from "lucide-react";
 import type { chessView } from "../worker/chess";
 export type ChessSnapshot = ReturnType<typeof chessView>;
-function Piece({ type, white }: { type: string; white: boolean }) {
+export function Piece({ type, white }: { type: string; white: boolean }) {
   const common = {
     fill: white ? "#f5f1df" : "#243246",
     stroke: white ? "#485568" : "#c6d1dc",
