@@ -45,3 +45,7 @@ Room forms confirm the chosen game without a selector. Practice uses the circuit
 ## Computer tables
 
 Chess, Guess My Number and Prism Code add a Bot icon and Play with computer action below their card actions. Use the existing scene and lime action palette. Solo settings explain difficulty and session lifetime, then give way to a centred game panel and a compact thinking/settings toolbar. Keep chess content at a readable maximum width with equal side space at desktop widths. On phones use the available panel width for the chess board rather than adding a second set of outer gutters. Do not imply rated chess strength or saved solo progress.
+
+## Game instructions
+
+Keep How to play on every game card and above active game content, including computer and stopwatch-practice screens. Use native disclosure controls with a book icon and a rotating chevron. Start with Your goal, five numbered steps and one worked example; put the full rules in More rules. Use direct verbs, short sentences and familiar words, and define game terms such as checkmate and draw. Keep body text at 16px, a readable line length, strong contrast and 48px summary targets. Preserve the mature lounge style. Instructions do not pause running timers and must say so on timed games.

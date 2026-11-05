@@ -2,6 +2,7 @@ import { ArrowRight, Bot, Hash, Timer, Users } from "lucide-react";
 import type { SoloGame } from "./solo-engine";
 import { GAMES, type GameId } from "./game-catalog";
 import { GameCover } from "./GameCover";
+import { GameRules } from "./GameRules";
 export function GameCards({
   onCreate,
   onJoin,
@@ -66,6 +67,7 @@ export function GameCards({
               Join room
             </button>
           </div>
+          <GameRules game={game.id} compact />
           {game.id === "timer" && (
             <button className="card-practice" onClick={onPractice}>
               <Timer size={15} />

@@ -131,3 +131,9 @@ Chess, Guess My Number and Prism Code have a **Play with computer** action on th
 Number and Prism strategies receive only the computer player's filtered view. Chess receives only the public move history. This prevents strategy code from using hidden choices, although local solo play is not an anti-cheat boundary against someone inspecting their own browser. Multiplayer rules and room storage are unchanged.
 
 Desktop chess content, including the board, status and actions, is centred within its panel. Prism content also has a centred readable width. The solo module loads only when a solo game is opened.
+
+## How-to-play guides
+
+Every game card has an expandable How to play guide. The same guide is available above the board in multiplayer rooms, on computer-game screens and in stopwatch practice. Each guide gives a short goal, five numbered steps and a concrete example. More rules covers scoring, ties, hidden information, special moves and replay rules. Imposter includes both word and one-stroke drawing modes; chess includes all six piece moves, check/checkmate, promotion, castling, en passant and draws.
+
+Guides use native details/summary controls for keyboard access, 16px body text and the existing lounge colours. They start closed and do not reset a game or pause a clock. Timed games say explicitly that the clock keeps going while the guide is open. Computer and clock-practice guides include the rules specific to those modes. Text is centralised in src/game-rules.ts; update it alongside future game-rule changes.

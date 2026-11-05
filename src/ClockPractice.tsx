@@ -8,6 +8,7 @@ import {
   Timer,
 } from "lucide-react";
 import { useClockShortcut } from "./useClockShortcut";
+import { GameRules } from "./GameRules";
 const seconds = (ms: number) => (ms / 1000).toFixed(3);
 type Attempt = {
   number: number;
@@ -95,6 +96,7 @@ export function ClockPractice({
         <h1 id="practice-title">Find your timing.</h1>
         <p>No room. No opponent. Just you and the clock.</p>
       </div>
+      <GameRules game="timer" mode="practice" />
       <div className="practice-layout">
         <div className="board clock-game practice-clock">
           <div className="eyebrow">
