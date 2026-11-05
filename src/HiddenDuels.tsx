@@ -123,7 +123,7 @@ function Rematch({
       onClick={() => send({ type: "rematch", match: game.match })}
     >
       {game.rematchReady.includes(id)
-        ? "Waiting for your friend…"
+        ? "Waiting for your opponent…"
         : "Play again · switch starter"}
     </button>
   );
@@ -174,10 +174,10 @@ export function PrismCode({
         </h2>
         <p>
           {g.phase === "setup"
-            ? "Arrange all four crystals into a secret order for your friend to solve."
+            ? "Arrange all four crystals into a secret order for your opponent to solve."
             : finished
               ? "The first exact arrangement wins."
-              : "Guess your friend’s order. You’ll learn how many positions match, but not which ones."}
+              : "Guess your opponent’s order. You’ll learn how many positions match, but not which ones."}
         </p>
       </div>
       {g.myCode && !finished && (
@@ -187,7 +187,7 @@ export function PrismCode({
             {showSecret ? (
               <CrystalRow colours={g.myCode} />
             ) : (
-              <p>Hidden from your friend.</p>
+              <p>Hidden from your opponent.</p>
             )}
           </div>
           <button
@@ -249,7 +249,7 @@ export function PrismCode({
         <div className="duel-reveal">
           {players.map((p) => (
             <div key={p.id}>
-              <span>{p.name}’s secret</span>
+              <span>{p.id === id ? 'Your secret' : `${p.name}’s secret`}</span>
               <CrystalRow colours={g.revealedCodes![p.id]} />
             </div>
           ))}

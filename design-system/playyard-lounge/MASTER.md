@@ -41,3 +41,7 @@ No invented activity, reviews, scores, rankings, currency or profile capabilitie
 Each card layers an original vector game object over the cinematic scene: number tumblers, a stopwatch, matching speech panels, secret identity cards, chess pieces, four prisms, a crescent-snack tray, memory tiles and a metal fuse bomb. These are decorative SVG illustrations rather than interface screenshots or new remote assets. Keep Create room and Join room as separate 44px controls inside an article, and never nest buttons. Stop the Clock also offers Practice solo.
 
 Room forms confirm the chosen game without a selector. Practice uses the circuit setting, a large local clock, labelled settings and recent-attempt feedback. Space controls only the active clock and must preserve text-entry and native form behaviour. Same Answer gives the last reveal its own deliberate continuation to the final score.
+
+## Computer tables
+
+Chess, Guess My Number and Prism Code add a Bot icon and Play with computer action below their card actions. Use the existing scene and lime action palette. Solo settings explain difficulty and session lifetime, then give way to a centred game panel and a compact thinking/settings toolbar. Keep chess content at a readable maximum width with equal side space at desktop widths. On phones use the available panel width for the chess board rather than adding a second set of outer gutters. Do not imply rated chess strength or saved solo progress.

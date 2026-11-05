@@ -113,4 +113,17 @@ describe("Game entry and reveal regressions", () => {
     expect(html).toContain("Target time (seconds)");
     expect(html).not.toContain("Waiting for a second player");
   });
+  it("offers computer opponents only for the three supported games", () => {
+    const html = renderToStaticMarkup(
+      createElement(GameCards, {
+        onCreate: () => {},
+        onJoin: () => {},
+        onPractice: () => {},
+        onSolo: () => {},
+      }),
+    );
+    for (const title of ["Chess", "Guess My Number", "Prism Code"])
+      expect(html).toContain(`Play ${title} with computer`);
+    expect((html.match(/Play with computer/g) || []).length).toBe(3);
+  });
 });

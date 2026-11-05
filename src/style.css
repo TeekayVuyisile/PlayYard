@@ -2492,6 +2492,7 @@ form label {
   margin: 0;
 }
 .chess-board {
+  margin-inline: auto;
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
   width: 100%;
@@ -3583,5 +3584,137 @@ form label {
   }
   .practice-history .section-heading > span {
     font-size: 12px;
+  }
+}
+/* Keep game content centred inside wide desktop panels. */
+.chess-game {
+  width: 100%;
+  max-width: 644px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+.chess-game .game-kicker,
+.chess-game .chess-actions {
+  justify-content: center;
+}
+.chess-game .chess-status,
+.chess-game .chess-help {
+  text-align: center;
+}
+.prism-game {
+  max-width: 760px;
+  margin-inline: auto;
+}
+.solo-shell {
+  width: min(100%, 960px);
+  margin: 48px auto 80px;
+}
+.solo-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.solo-heading .eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+.solo-heading h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  margin: 12px 0;
+  letter-spacing: -0.04em;
+}
+.solo-heading p {
+  color: var(--muted);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.solo-settings {
+  max-width: 540px;
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 36px);
+  display: grid;
+  gap: 14px;
+}
+.solo-settings label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.solo-settings select,
+.solo-settings input,
+.solo-number input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  font-size: 16px;
+}
+.solo-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.solo-range label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.solo-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.solo-toolbar [role="status"] {
+  color: var(--accent, #c8f36b);
+}
+.solo-number {
+  max-width: 640px;
+  margin-inline: auto;
+}
+.solo-number form {
+  display: grid;
+  gap: 14px;
+  margin-block: 24px;
+}
+.solo-guesses {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.solo-guesses li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.solo-error {
+  padding: 16px;
+  margin-block: 20px;
+  border: 1px solid #e6a0a0;
+  border-radius: 8px;
+  background: #291f28;
+}
+@media (max-width: 600px) {
+  .solo-shell {
+    width: 100%;
+    margin-top: 28px;
+  }
+  .solo-board .chess-game {
+    padding-inline: 8px;
+  }
+  .solo-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .solo-toolbar button {
+    width: 100%;
+  }
+  .solo-range {
+    gap: 10px;
   }
 }
