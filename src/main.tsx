@@ -38,10 +38,14 @@ import {
   type FuseSnapshot,
 } from "./TimedGames";
 import { ClockPractice } from "./ClockPractice";
+import type { SoloGame } from "./solo-engine";
 import { GameCards } from "./GameCards";
 import { gameTitle, type GameId } from "./game-catalog";
 import { SceneProp } from "./SceneProp";
 import "./style.css";
+const SoloPlay = React.lazy(() =>
+  import("./SoloPlay").then((module) => ({ default: module.SoloPlay })),
+);
 type Player = { id: string; name: string; ready: boolean; secret?: number };
 type Snapshot = {
   serverNow?: number;
@@ -98,6 +102,13 @@ function App() {
       new URLSearchParams(location.search).get("practice") === "timer",
   );
   const [joinGame, setJoinGame] = useState<GameId | null>(null);
+  const [solo, setSolo] = useState<SoloGame | null>(() => {
+    const value = new URLSearchParams(location.search).get("solo");
+    return !initial &&
+      (value === "number" || value === "chess" || value === "prism")
+      ? value
+      : null;
+  });
   const [name, setName] = useState(""),
     [code, setCode] = useState(initial),
     [min, setMin] = useState("0"),
@@ -181,21 +192,28 @@ function App() {
     setError("");
   }
   function openPractice() {
+    setSolo(null);
     setPractice(true);
     setModal(null);
     setError("");
     history.replaceState({}, "", "?practice=timer");
     window.scrollTo(0, 0);
   }
+  function openSolo(selected: SoloGame) {
+    setSolo(selected);
+    setPractice(false);
+    setModal(null);
+    setError("");
+    history.replaceState({}, "", `?solo=${selected}`);
+    window.scrollTo(0, 0);
+  }
   function chooseGame() {
     document.getElementById("games-title")?.focus({ preventScroll: true });
-    document
-      .getElementById("games")
-      ?.scrollIntoView({
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "auto"
-          : "smooth",
-      });
+    document.getElementById("games")?.scrollIntoView({
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
   }
   async function enter(e: React.FormEvent) {
     e.preventDefault();
@@ -293,9 +311,11 @@ function App() {
   }
   const theme = roomCode
     ? room?.game || "number"
-    : practice
-      ? "timer"
-      : "lounge";
+    : solo
+      ? solo
+      : practice
+        ? "timer"
+        : "lounge";
   const scenery =
     theme === "number" ||
     theme === "chess" ||
@@ -329,7 +349,7 @@ function App() {
           PLAYYARD
         </a>
         <nav aria-label="Main navigation">
-          {roomCode || practice ? (
+          {roomCode || practice || solo ? (
             <a className="back-link" href="/">
               <ArrowLeft size={15} /> Back to lounge
             </a>
@@ -362,7 +382,17 @@ function App() {
         </div>
       </header>
       <main id="main-content" inert={Boolean(modal)}>
-        {!roomCode && practice ? (
+        {!roomCode && solo ? (
+          <React.Suspense
+            fallback={
+              <p className="solo-shell" role="status">
+                Opening your solo table…
+              </p>
+            }
+          >
+            <SoloPlay key={solo} game={solo} />
+          </React.Suspense>
+        ) : !roomCode && practice ? (
           <ClockPractice
             active={!modal}
             onCreateRoom={() => openGame("timer", "create")}
@@ -424,6 +454,7 @@ function App() {
                 onCreate={(selected) => openGame(selected, "create")}
                 onJoin={(selected) => openGame(selected, "join")}
                 onPractice={openPractice}
+                onSolo={openSolo}
               />
             </section>
             <section className="how" id="how-to-play">
@@ -1137,7 +1168,7 @@ function App() {
                       <p>
                         <b>Standard two-player chess.</b> Legal moves,
                         promotion, castling, draws and rematches. The host
-                        starts as white. No clock or computer opponent.
+                        starts as white. No clock.
                       </p>
                     </div>
                   ) : game === "answer" ? (

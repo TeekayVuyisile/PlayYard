@@ -1,14 +1,17 @@
-import { ArrowRight, Hash, Timer, Users } from "lucide-react";
+import { ArrowRight, Bot, Hash, Timer, Users } from "lucide-react";
+import type { SoloGame } from "./solo-engine";
 import { GAMES, type GameId } from "./game-catalog";
 import { GameCover } from "./GameCover";
 export function GameCards({
   onCreate,
   onJoin,
   onPractice,
+  onSolo,
 }: {
   onCreate: (game: GameId) => void;
   onJoin: (game: GameId) => void;
   onPractice: () => void;
+  onSolo?: (game: SoloGame) => void;
 }) {
   return (
     <div className="game-grid">
@@ -69,6 +72,19 @@ export function GameCards({
               Practice solo
             </button>
           )}
+          {onSolo &&
+            (game.id === "chess" ||
+              game.id === "number" ||
+              game.id === "prism") && (
+              <button
+                className="card-practice"
+                aria-label={`Play ${game.title} with computer`}
+                onClick={() => onSolo(game.id as SoloGame)}
+              >
+                <Bot size={15} />
+                Play with computer
+              </button>
+            )}
         </article>
       ))}
     </div>
